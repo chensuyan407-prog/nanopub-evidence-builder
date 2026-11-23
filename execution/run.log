@@ -1,0 +1,266 @@
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\run_eval.py
+{
+ "dev_set (rules tuned on it)": {
+  "n_assertions": 35,
+  "n_clean": 14,
+  "n_planted_defects": 21,
+  "defect_detection_rate": 1.0,
+  "clean_not_failed_rate": 1.0,
+  "clean_strict_pass_rate": 0.929,
+  "clean_evidence_located_at_quote_or_cell": 1.0,
+  "baseline_B0_no_checks_detection": 0.0,
+  "baseline_B1_quote_exists_only_detection": 0.143
+ },
+ "holdout_set (after freeze)": {
+  "n_assertions": 12,
+  "n_clean": 5,
+  "n_planted_defects": 7,
+  "defect_detection_rate": 1.0,
+  "clean_not_failed_rate": 1.0,
+  "clean_strict_pass_rate": 1.0,
+  "clean_evidence_located_at_quote_or_cell": 1.0,
+  "baseline_B0_no_checks_detection": 0.0,
+  "baseline_B1_quote_exists_only_detection": 0.143
+ },
+ "n_assertions": 47,
+ "n_clean": 19,
+ "n_planted_defects": 28,
+ "defect_detection_rate": 1.0,
+ "clean_not_failed_rate": 1.0,
+ "clean_strict_pass_rate": 0.947,
+ "clean_evidence_located_at_quote_or_cell": 1.0,
+ "baseline_B0_no_checks_detection": 0.0,
+ "baseline_B1_quote_exists_only_detection": 0.143,
+ "metadata_exact": {
+  "title": 1.0,
+  "year": 1.0,
+  "arxiv_id": 1.0,
+  "version": 1.0
+ },
+ "authors_recall_mean": 1.0,
+ "authors_precision_mean": 1.0,
+ "exports_roundtrip_ok": true,
+ "deterministic": true,
+ "wall_seconds": 11.2
+}
+CHECK {"paper": "attention", "holdout": false, "id": "t04", "clean": true, "expected_rules": [], "verdict": "warn", "rules_found": ["R24"], "confidence": 0.65, "evidence_match": ["exact_sentence"], "bbox_precision": ["quote"], "pages": [9], "ok": true, "strict_pass": false, "located": true}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\work
+{
+ "case_id": "encrypted_pdf",
+ "pdfs": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\input\\paper.pdf"
+ ],
+ "contract_fields": [
+  "assertions"
+ ],
+ "field_kind_suggestions": {
+  "assertions": "assertions"
+ },
+ "parse_status": [
+  "failed"
+ ],
+ "metadata": [
+  null
+ ],
+ "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\output\\result.json",
+ "sentences": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\output\\parsed\\paper\\sentences.jsonl"
+ ],
+ "candidates": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\work\\candidates.md",
+ "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\work\\draft.json",
+ "task_file": null,
+ "case_error": null,
+ "seconds": 0.07
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\work
+{
+ "case_id": "no_pdf",
+ "pdfs": [],
+ "contract_fields": [
+  "assertions"
+ ],
+ "field_kind_suggestions": {
+  "assertions": "assertions"
+ },
+ "parse_status": [],
+ "metadata": [],
+ "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\no_pdf\\output\\result.json",
+ "sentences": [],
+ "candidates": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\no_pdf\\work\\candidates.md",
+ "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\no_pdf\\work\\draft.json",
+ "task_file": null,
+ "case_error": null,
+ "seconds": 0.01
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\nope.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\work
+{
+ "case_id": null,
+ "pdfs": [],
+ "contract_fields": [],
+ "field_kind_suggestions": {},
+ "parse_status": [],
+ "metadata": [],
+ "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\output\\result.json",
+ "sentences": [],
+ "candidates": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\work\\candidates.md",
+ "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\work\\draft.json",
+ "task_file": null,
+ "case_error": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\nope.json not found",
+ "seconds": 0.0
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\work
+{
+ "case_id": "image",
+ "pdfs": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\input\\paper.pdf"
+ ],
+ "contract_fields": [
+  "assertions"
+ ],
+ "field_kind_suggestions": {
+  "assertions": "assertions"
+ },
+ "parse_status": [
+  "success"
+ ],
+ "metadata": [
+  {
+   "title": "Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift",
+   "authors": [
+    "Sergey Ioffe",
+    "Christian Szegedy"
+   ],
+   "arxiv_id": "1502.03167",
+   "version": "v3",
+   "arxiv_category": "cs.LG",
+   "arxiv_date": "2 Mar 2015",
+   "doi": null,
+   "year": 2015,
+   "venue": null,
+   "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
+   "page_count": 11,
+   "file_name": "paper.pdf"
+  }
+ ],
+ "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\output\\result.json",
+ "sentences": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\output\\parsed\\paper\\sentences.jsonl"
+ ],
+ "candidates": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\work\\candidates.md",
+ "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\work\\draft.json",
+ "task_file": null,
+ "case_error": null,
+ "seconds": 0.83
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\crop_region.py C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\output\parsed\paper --page 1 --bbox 150,100,460,160 --dpi 120
+{
+ "crop": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\output\\parsed\\paper\\crops\\p1_150_100_460_160_120.png",
+ "crop_rel": "crops/p1_150_100_460_160_120.png",
+ "page": 1,
+ "bbox": [
+  150.0,
+  100.0,
+  460.0,
+  160.0
+ ],
+ "dpi": 120,
+ "ink_ratio": 0.0546,
+ "blank": false,
+ "provenance": {
+  "provenance_version": 1,
+  "tool": "crop_region.py",
+  "source_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
+  "source_name": "paper.pdf",
+  "page": 1,
+  "page_count": 11,
+  "page_size": [
+   612.0,
+   792.0
+  ],
+  "bbox": [
+   150.0,
+   100.0,
+   460.0,
+   160.0
+  ],
+  "dpi": 120,
+  "crop_file": "p1_150_100_460_160_120.png",
+  "crop_sha256": "51076923a858ea9340cb9dcd5946272e095e894ab6c9318a91aa5cd05f5c80f0",
+  "crop_px": [
+   517,
+   101
+  ]
+ }
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_build.py --draft C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\work\draft.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\output --created 2026-11-23T00:00:00Z
+{
+ "n_assertions": 1,
+ "summary": {
+  "n": 1,
+  "pass": 0,
+  "warn": 1,
+  "fail": 0,
+  "rule_counts": {
+   "R26:warn": 1
+  }
+ },
+ "export_roundtrip": {
+  "nquads_lines": 44,
+  "nquads_malformed": 0,
+  "jsonld_statements": 44,
+  "expected": 44,
+  "ok": true,
+  "rdflib_trig_quads": 44
+ },
+ "status": "partial",
+ "status_reason": {
+  "failing_records": 0,
+  "unfilled_fields": [],
+  "export_ok": true,
+  "image_read_records_need_human_review": [
+   "i1"
+  ]
+ },
+ "records": [
+  {
+   "id": "i1",
+   "verdict": "warn",
+   "confidence": 0.53,
+   "issues": [
+    "R26 warn: evidence read from a page image; reading not machine-checked [Sergey Ioffe Google Inc., sioffe@google.com]"
+   ],
+   "evidence": [
+    "image_read p1 "
+   ]
+  }
+ ],
+ "seconds": 0.15
+}
+
+
+[exit 0]
+

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.pdf
+tests/pdfs/
+execution/results/cases/
+execution/results/robustness/

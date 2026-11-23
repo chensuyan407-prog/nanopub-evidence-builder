@@ -1,0 +1,277 @@
+{
+ "dev_set (rules tuned on it)": {
+  "n_assertions": 35,
+  "n_clean": 14,
+  "n_planted_defects": 21,
+  "defect_detection_rate": 1.0,
+  "clean_not_failed_rate": 1.0,
+  "clean_strict_pass_rate": 0.929,
+  "clean_evidence_located_at_quote_or_cell": 1.0,
+  "baseline_B0_no_checks_detection": 0.0,
+  "baseline_B1_quote_exists_only_detection": 0.143
+ },
+ "holdout_set (after freeze)": {
+  "n_assertions": 12,
+  "n_clean": 5,
+  "n_planted_defects": 7,
+  "defect_detection_rate": 1.0,
+  "clean_not_failed_rate": 1.0,
+  "clean_strict_pass_rate": 1.0,
+  "clean_evidence_located_at_quote_or_cell": 1.0,
+  "baseline_B0_no_checks_detection": 0.0,
+  "baseline_B1_quote_exists_only_detection": 0.143
+ },
+ "n_assertions": 47,
+ "n_clean": 19,
+ "n_planted_defects": 28,
+ "defect_detection_rate": 1.0,
+ "clean_not_failed_rate": 1.0,
+ "clean_strict_pass_rate": 0.947,
+ "clean_evidence_located_at_quote_or_cell": 1.0,
+ "baseline_B0_no_checks_detection": 0.0,
+ "baseline_B1_quote_exists_only_detection": 0.143,
+ "metadata_exact": {
+  "title": 1.0,
+  "year": 1.0,
+  "arxiv_id": 1.0,
+  "version": 1.0
+ },
+ "authors_recall_mean": 1.0,
+ "authors_precision_mean": 1.0,
+ "exports_roundtrip_ok": true,
+ "deterministic": true,
+ "papers": {
+  "resnet": {
+   "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
+   "init_seconds": 1.29,
+   "build_seconds": 0.59,
+   "deterministic_nquads": true,
+   "export_roundtrip": {
+    "nquads_lines": 552,
+    "nquads_malformed": 0,
+    "jsonld_statements": 552,
+    "expected": 552,
+    "ok": true,
+    "rdflib_trig_quads": 552
+   },
+   "metadata": {
+    "title": true,
+    "year": true,
+    "arxiv_id": true,
+    "version": true,
+    "authors_recall": 1.0,
+    "authors_precision": 1.0
+   },
+   "summary": {
+    "n": 11,
+    "pass": 5,
+    "warn": 2,
+    "fail": 4,
+    "rule_counts": {
+     "R07:fail": 1,
+     "R09:fail": 2,
+     "R04:fail": 2,
+     "R20:warn": 1,
+     "R15:warn": 1
+    }
+   },
+   "status": "partial",
+   "result_status": "partial",
+   "result_field_status": {
+    "assertions": "generated",
+    "evidence": "generated",
+    "provenance": "generated"
+   },
+   "result_fields": {}
+  },
+  "attention": {
+   "pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+   "init_seconds": 1.02,
+   "build_seconds": 0.63,
+   "deterministic_nquads": true,
+   "export_roundtrip": {
+    "nquads_lines": 633,
+    "nquads_malformed": 0,
+    "jsonld_statements": 633,
+    "expected": 633,
+    "ok": true,
+    "rdflib_trig_quads": 633
+   },
+   "metadata": {
+    "title": true,
+    "year": true,
+    "arxiv_id": true,
+    "version": true,
+    "authors_recall": 1.0,
+    "authors_precision": 1.0
+   },
+   "summary": {
+    "n": 12,
+    "pass": 3,
+    "warn": 6,
+    "fail": 3,
+    "rule_counts": {
+     "R24:warn": 2,
+     "R09:fail": 1,
+     "R07:fail": 1,
+     "R20:warn": 2,
+     "R14:warn": 1,
+     "R15:warn": 1,
+     "R16:warn": 1,
+     "R04:fail": 1,
+     "R10:warn": 2,
+     "R05:warn": 1,
+     "R19:warn": 1
+    }
+   },
+   "status": "partial",
+   "result_status": "partial",
+   "result_field_status": {
+    "assertions": "generated",
+    "evidence": "generated",
+    "provenance": "generated"
+   },
+   "result_fields": {}
+  },
+  "bn": {
+   "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
+   "init_seconds": 1.0,
+   "build_seconds": 0.58,
+   "deterministic_nquads": true,
+   "export_roundtrip": {
+    "nquads_lines": 569,
+    "nquads_malformed": 0,
+    "jsonld_statements": 569,
+    "expected": 569,
+    "ok": true,
+    "rdflib_trig_quads": 569
+   },
+   "metadata": {
+    "title": true,
+    "year": true,
+    "arxiv_id": true,
+    "version": true,
+    "authors_recall": 1.0,
+    "authors_precision": 1.0
+   },
+   "summary": {
+    "n": 12,
+    "pass": 5,
+    "warn": 3,
+    "fail": 4,
+    "rule_counts": {
+     "R09:fail": 1,
+     "R17:warn": 1,
+     "R12:warn": 1,
+     "R07:fail": 1,
+     "R02:fail": 1,
+     "R22:fail": 1,
+     "R19:warn": 1
+    }
+   },
+   "status": "partial",
+   "result_status": "partial",
+   "result_field_status": {
+    "assertions": "generated",
+    "evidence": "generated",
+    "provenance": "generated"
+   },
+   "result_fields": {}
+  },
+  "kaplan_holdout": {
+   "pdf_sha256": "a41bd7877fd1a6bcbba096b2619618bd2f90e02488f2365644903eb2f7c6a494",
+   "init_seconds": 3.14,
+   "build_seconds": 0.95,
+   "deterministic_nquads": true,
+   "export_roundtrip": {
+    "nquads_lines": 665,
+    "nquads_malformed": 0,
+    "jsonld_statements": 665,
+    "expected": 665,
+    "ok": true,
+    "rdflib_trig_quads": 665
+   },
+   "metadata": {
+    "title": true,
+    "year": true,
+    "arxiv_id": true,
+    "version": true,
+    "authors_recall": 1.0,
+    "authors_precision": 1.0
+   },
+   "summary": {
+    "n": 12,
+    "pass": 5,
+    "warn": 5,
+    "fail": 2,
+    "rule_counts": {
+     "R09:fail": 2,
+     "R07:warn": 1,
+     "R12:warn": 1,
+     "R14:warn": 1,
+     "R16:warn": 1,
+     "R04:fail": 1,
+     "R17:warn": 1,
+     "R15:warn": 1
+    }
+   },
+   "status": "partial",
+   "result_status": "partial",
+   "result_field_status": {
+    "answer_alpha_n": "supported",
+    "answer_shape": "supported",
+    "nanopublications": "generated",
+    "provenance": "generated"
+   },
+   "result_fields": {
+    "answer_alpha_n": "0.076",
+    "answer_shape": "No. Within reasonable limits performance depends very weakly on model shape (depth, width, heads) when N is held fixed.",
+    "nanopublications": "<list len 5>",
+    "provenance": "<dict len 14>"
+   }
+  }
+ },
+ "wall_seconds": 11.2,
+ "robustness": {
+  "encrypted_pdf": {
+   "status": "failed",
+   "reason": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\input\\paper.pdf: encrypted",
+   "expected_status": "failed",
+   "ok": true
+  },
+  "no_pdf": {
+   "status": "failed",
+   "reason": "no PDF found in case.json or the input directory",
+   "expected_status": "failed",
+   "ok": true
+  },
+  "missing_case_json": {
+   "status": "failed",
+   "case_error": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\nope.json not found",
+   "ok": true
+  },
+  "image_region_evidence": {
+   "status": "partial",
+   "status_reason": {
+    "failing_records": 0,
+    "unfilled_fields": [],
+    "export_ok": true,
+    "image_read_records_need_human_review": [
+     "i1"
+    ]
+   },
+   "ok": true
+  }
+ },
+ "holdout_at_freeze (before post-freeze fixes)": {
+  "n_assertions": 12,
+  "n_clean": 5,
+  "n_planted_defects": 7,
+  "defect_detection_rate": 0.857,
+  "clean_not_failed_rate": 1.0,
+  "clean_strict_pass_rate": 0.8,
+  "clean_evidence_located_at_quote_or_cell": 1.0,
+  "baseline_B0_no_checks_detection": 0.0,
+  "baseline_B1_quote_exists_only_detection": 0.143
+ }
+}

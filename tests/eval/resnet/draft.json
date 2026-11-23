@@ -1,0 +1,255 @@
+{
+ "source": "paper",
+ "assertions": [
+  {
+   "id": "r01",
+   "text": "An ensemble of residual nets achieves 3.57% error on the ImageNet test set.",
+   "subject": "ensemble of residual nets",
+   "predicate": "achieves",
+   "object": "error on the ImageNet test set",
+   "evidence": [
+    "p1-b5-s6"
+   ],
+   "qualifiers": {
+    "value": "3.57",
+    "unit": "%",
+    "metric": "error",
+    "dataset": "ImageNet test set"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "r02",
+   "text": "On ImageNet, the 34-layer ResNet is better than the 18-layer ResNet by 2.8%.",
+   "subject": "34-layer ResNet",
+   "predicate": "outperforms",
+   "object": "18-layer ResNet",
+   "evidence": [
+    {
+     "page": 5,
+     "quote": "the 34-layer ResNet is better than the 18-layer ResNet (by 2.8%)"
+    }
+   ],
+   "qualifiers": {
+    "value": "2.8",
+    "unit": "%",
+    "dataset": "ImageNet"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "r03",
+   "text": "ResNet-152 has a single-model top-5 error of 4.49% on the ImageNet validation set.",
+   "subject": "ResNet-152",
+   "predicate": "has_value",
+   "object": "top-5 error",
+   "evidence": [
+    {
+     "type": "table_cell",
+     "table": "Table 4",
+     "row": {
+      "method": "ResNet-152"
+     },
+     "column": "top-5 err.",
+     "value": "4.49"
+    }
+   ],
+   "qualifiers": {
+    "value": "4.49",
+    "unit": "%",
+    "metric": "top-5 err.",
+    "dataset": "ImageNet validation set",
+    "condition": "single model"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "r04",
+   "text": "ResNet-152 has a lower single-model top-5 validation error than ResNet-34 B on ImageNet.",
+   "subject": "ResNet-152",
+   "predicate": "lower_than",
+   "object": "ResNet-34 B",
+   "evidence": [
+    {
+     "type": "table_cell",
+     "table": "Table 4",
+     "row": {
+      "method": "ResNet-152"
+     },
+     "column": "top-5 err."
+    },
+    {
+     "type": "table_cell",
+     "table": "Table 4",
+     "row": {
+      "method": "ResNet-34 B"
+     },
+     "column": "top-5 err."
+    }
+   ],
+   "evidence_type": "inferred",
+   "reasoning": "Table 4 top-5 err.: ResNet-152 4.49 < ResNet-34 B 7.40",
+   "qualifiers": {
+    "metric": "top-5 err.",
+    "dataset": "ImageNet validation set"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "r05",
+   "text": "The 34-layer plain net still achieving competitive accuracy suggests that the solver works to some extent.",
+   "subject": "solver",
+   "predicate": "has_property",
+   "object": "works to some extent",
+   "evidence": [
+    "p5-b85-s5"
+   ],
+   "modality": "hedged",
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "r06",
+   "text": "Residual networks are easier to optimize and can gain accuracy from considerably increased depth.",
+   "subject": "residual networks",
+   "predicate": "has_property",
+   "object": "easier to optimize",
+   "evidence": [
+    "p1-b5-s4"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R07"
+    ]
+   }
+  },
+  {
+   "id": "r07",
+   "text": "An ensemble of residual nets achieves 3.75% error on the ImageNet test set.",
+   "subject": "ensemble of residual nets",
+   "predicate": "achieves",
+   "object": "error",
+   "evidence": [
+    "p1-b5-s6"
+   ],
+   "qualifiers": {
+    "value": "3.75",
+    "unit": "%",
+    "dataset": "ImageNet test set"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R09"
+    ]
+   }
+  },
+  {
+   "id": "r08",
+   "text": "Deeper plain networks have higher training error than shallower plain networks.",
+   "subject": "deeper plain networks",
+   "predicate": "higher_than",
+   "object": "shallower plain networks",
+   "evidence": [
+    {
+     "page": 4,
+     "quote": "deeper plain networks always have much higher training error than shallow ones"
+    }
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R04"
+    ]
+   }
+  },
+  {
+   "id": "r09",
+   "text": "ResNet-152 has a single-model top-5 error of 3.57% on the ImageNet validation set.",
+   "subject": "ResNet-152",
+   "predicate": "has_value",
+   "object": "top-5 error",
+   "evidence": [
+    {
+     "type": "table_cell",
+     "table": "Table 4",
+     "row": {
+      "method": "ResNet-152"
+     },
+     "column": "top-5 err.",
+     "value": "3.57"
+    }
+   ],
+   "qualifiers": {
+    "value": "3.57",
+    "unit": "%",
+    "dataset": "ImageNet validation set",
+    "condition": "single model"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R04",
+     "R09"
+    ]
+   }
+  },
+  {
+   "id": "r10",
+   "text": "VGG nets are 8 times shallower than 152-layer residual nets.",
+   "subject": "VGG nets",
+   "predicate": "has_property",
+   "object": "8x shallower than 152-layer residual nets",
+   "evidence": [
+    "p1-b5-s5"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R20"
+    ]
+   }
+  },
+  {
+   "id": "r11",
+   "text": "Residual nets always gain accuracy from increased depth.",
+   "subject": "residual nets",
+   "predicate": "improves",
+   "object": "accuracy",
+   "evidence": [
+    {
+     "page": 5,
+     "quote": "we manage to obtain accuracy gains from increased depth"
+    }
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R15"
+    ]
+   }
+  }
+ ],
+ "fields": {
+  "assertions": {
+   "kind": "assertions"
+  },
+  "evidence": {
+   "kind": "evidence"
+  },
+  "provenance": {
+   "kind": "provenance"
+  }
+ },
+ "conflicts": []
+}

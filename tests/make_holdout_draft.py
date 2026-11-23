@@ -1,0 +1,64 @@
+"""Held-out draft (written after the code freeze recorded in tests/FREEZE_holdout.sha256).
+
+Paper: Kaplan et al. 2020, Scaling Laws for Neural Language Models (arXiv 2001.08361v1).
+Case: two questions + nanopublications. Assertions written the way the SKILL.md workflow does
+(np_find.py / table_query.py), plus planted defects with the rule each should trigger.
+"""
+import json
+import os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PASS = {"clean": True}
+
+
+def BAD(*r):
+    return {"clean": False, "rules": list(r)}
+
+
+A = [
+    {"id": "k1", "text": "The fitted exponent alpha_N of the power law between test loss and non-embedding parameter count N is 0.076.",
+     "subject": "power law of test loss in non-embedding parameter count N", "predicate": "has_value", "object": "exponent alpha_N",
+     "qualifiers": {"value": "0.076", "metric": "alpha_N"},
+     "evidence": [{"type": "table_cell", "table": "Table 5", "row": {"Power Law": "α N = 0.076"}, "column": "Power Law"}], "expect": PASS},
+    {"id": "k2", "text": "Transformer performance depends very weakly on the shape parameters when the total non-embedding parameter count N is held fixed.",
+     "subject": "Transformer performance", "predicate": "associated_with", "object": "model shape (nlayer, nheads, dff)",
+     "qualifiers": {"condition": "total non-embedding parameter count N held fixed", "strength": "very weak"},
+     "evidence": ["p8-b5-s1"], "context": ["p3-b3-s2"], "expect": PASS},
+    {"id": "k3", "text": "The critical batch size approximately doubles for every 13% decrease in loss.",
+     "subject": "critical batch size", "predicate": "correlates_with", "object": "loss",
+     "qualifiers": {"value": "13", "unit": "% decrease in loss per doubling"}, "evidence": ["p12-b3-s2"], "expect": PASS},
+    {"id": "k4", "text": "A model with (nlayer, dmodel) = (6, 4288) reaches a loss within 3% of the (48, 1600) model.",
+     "subject": "model with (nlayer, dmodel) = (6, 4288)", "predicate": "comparable_to", "object": "(48, 1600) model",
+     "qualifiers": {"value": "3", "unit": "% loss difference"},
+     "evidence": [{"page": 8, "quote": "an (nlayer, dmodel) = (6, 4288) reaches a loss within 3% of the (48, 1600) model"}], "expect": PASS},
+    {"id": "k5", "text": "Larger models are significantly more sample-efficient.", "subject": "larger models", "predicate": "has_property",
+     "object": "significantly more sample-efficient", "evidence": [{"page": 1, "quote": "Larger models are significantly more sampleefficient"}], "expect": PASS},
+    {"id": "k6", "text": "The critical batch size approximately doubles for every 15% decrease in loss.",
+     "subject": "critical batch size", "predicate": "correlates_with", "object": "loss",
+     "qualifiers": {"value": "15", "unit": "% decrease in loss per doubling"}, "evidence": ["p12-b3-s2"], "expect": BAD("R09")},
+    {"id": "k7", "text": "Larger models are significantly more sample-efficient, and compute-efficient training stops significantly before convergence.",
+     "subject": "larger models", "predicate": "has_property", "object": "more sample-efficient", "evidence": ["p1-b33-s6"], "expect": BAD("R07")},
+    {"id": "k8", "text": "Increasingly large powers for larger models show an improved ability to quickly recognize patterns.",
+     "subject": "larger models", "predicate": "has_property", "object": "improved ability to quickly recognize patterns",
+     "evidence": ["p9-b5-s3"], "expect": BAD("R12")},
+    {"id": "k9", "text": "The critical batch size depends directly on the model size.", "subject": "critical batch size", "predicate": "associated_with",
+     "object": "model size", "evidence": ["p12-b3-s1"], "expect": BAD("R14")},
+    {"id": "k10", "text": "Models smaller than 10^9 parameters can be trained with minimal overfitting.", "subject": "models smaller than 10^9 parameters",
+     "predicate": "has_property", "object": "minimal overfitting", "evidence": ["p12-b20-s1"], "expect": BAD("R16")},
+    {"id": "k11", "text": "Optimal model size grows by 5x for each 10x increase in compute.", "subject": "optimal model size", "predicate": "increases",
+     "object": "compute budget", "qualifiers": {"value": "5x per 10x compute"},
+     "evidence": [{"page": 16, "quote": "the optimal model size increases five-fold whenever compute grows ten-fold"}], "expect": BAD("R04")},
+    {"id": "k12", "text": "Performance always depends very weakly on depth vs. width.", "subject": "performance", "predicate": "associated_with",
+     "object": "depth vs. width", "evidence": ["p3-b3-s2"], "expect": BAD("R15")},
+]
+DRAFT = {"source": "paper", "assertions": A,
+         "fields": {"answer_alpha_n": {"value": "0.076", "from": ["k1"]},
+                    "answer_shape": {"value": "No. Within reasonable limits performance depends very weakly on model shape (depth, width, heads) when N is held fixed.",
+                                     "from": ["k2"]},
+                    "nanopublications": {"kind": "nanopublications", "filter": ["k1", "k2", "k3", "k4", "k5"]},
+                    "provenance": {"kind": "provenance"}}}
+if __name__ == "__main__":
+    os.makedirs(os.path.join(HERE, "eval", "kaplan_holdout"), exist_ok=True)
+    with open(os.path.join(HERE, "eval", "kaplan_holdout", "draft.json"), "w", encoding="utf-8") as fh:
+        json.dump(DRAFT, fh, ensure_ascii=False, indent=1)
+    print(len(A), "assertions")

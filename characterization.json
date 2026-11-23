@@ -1,0 +1,135 @@
+{
+ "deviations_from_paper": [
+  {
+   "target": "planted defects detected (dev set, rules tuned on it)",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "21 defects on ResNet/Transformer/BatchNorm; baseline quote-exists-only = 0.143, no checks = 0",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.1
+  },
+  {
+   "target": "planted defects detected (held-out paper, at code freeze)",
+   "metric": "absolute_error",
+   "actual_value": 0.857,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "Kaplan 2020; draft written after the freeze; miss = compound claim joined by ', and' + verb outside the list",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.2
+  },
+  {
+   "target": "planted defects detected (held-out paper, after post-freeze fix)",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "same paper after the fix; it is no longer a clean held-out measure",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.2
+  },
+  {
+   "target": "clean assertions not failed (all papers)",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "19 clean assertions",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.1
+  },
+  {
+   "target": "clean assertions strict pass (no warning)",
+   "metric": "absolute_error",
+   "actual_value": 0.947,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "one remaining warning is a true duplicate (R24) in the eval set",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.2
+  },
+  {
+   "target": "clean evidence located at quote / table-cell level",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "line boxes from PDF words; table cells by row/column name",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.1
+  },
+  {
+   "target": "metadata title exact",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "4 papers",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.0
+  },
+  {
+   "target": "metadata arXiv id + version exact",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "from the arXiv stamp on page 1",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.0
+  },
+  {
+   "target": "author list recall",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "heuristic split, flagged needs_review",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.1
+  },
+  {
+   "target": "author list precision",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "held-out paper was 0.833 before the post-freeze fix",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.1
+  },
+  {
+   "target": "RDF export round trip (N-Quads / JSON-LD / TriG)",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "TriG parsed by rdflib when installed",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.0
+  },
+  {
+   "target": "deterministic output (same draft -> same N-Quads)",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "content-derived ids",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.0
+  },
+  {
+   "target": "robustness checks passed",
+   "metric": "absolute_error",
+   "actual_value": 1.0,
+   "reference_value": 1.0,
+   "score": 1.0,
+   "explanation": "encrypted_pdf, no_pdf, missing_case_json, image_region_evidence",
+   "evidence_artifact": "metrics",
+   "tolerance": 0.0
+  }
+ ],
+ "notes": "Self-evaluation on author-chosen public papers with planted defects; the platform's three fixed cases are not used here."
+}

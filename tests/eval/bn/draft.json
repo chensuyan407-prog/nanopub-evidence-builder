@@ -1,0 +1,236 @@
+{
+ "source": "paper",
+ "assertions": [
+  {
+   "id": "b01",
+   "text": "BN-x5 needs 14 times fewer training steps than Inception to reach 72.2% accuracy.",
+   "subject": "BN-x5",
+   "predicate": "outperforms",
+   "object": "Inception",
+   "evidence": [
+    "p7-b12-s3"
+   ],
+   "qualifiers": {
+    "value": "14",
+    "unit": "x fewer steps",
+    "metric": "training steps to reach 72.2% accuracy"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "b02",
+   "text": "BN-x5-Sigmoid achieves an accuracy of 69.8%.",
+   "subject": "BN-x5-Sigmoid",
+   "predicate": "achieves",
+   "object": "accuracy",
+   "evidence": [
+    "p7-b17-s1"
+   ],
+   "qualifiers": {
+    "value": "69.8",
+    "unit": "%",
+    "metric": "accuracy"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "b03",
+   "text": "Without Batch Normalization, Inception with sigmoid never achieves better than 1/1000 accuracy.",
+   "subject": "Inception with sigmoid, without Batch Normalization",
+   "predicate": "lacks_property",
+   "object": "accuracy better than 1/1000",
+   "evidence": [
+    "p7-b17-s2"
+   ],
+   "modality": "negated",
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "b04",
+   "text": "Inception reached 72.2% accuracy after 31 · 10^6 training steps.",
+   "subject": "Inception",
+   "predicate": "achieves",
+   "object": "accuracy",
+   "evidence": [
+    "p7-b10-s2"
+   ],
+   "qualifiers": {
+    "value": "72.2",
+    "unit": "%",
+    "condition": "after 31 · 10^6 training steps"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "b05",
+   "text": "An ensemble of batch-normalized networks reaches 4.9% top-5 validation error on ImageNet classification.",
+   "subject": "ensemble of batch-normalized networks",
+   "predicate": "achieves",
+   "object": "top-5 validation error on ImageNet",
+   "evidence": [
+    "p1-b5-s8"
+   ],
+   "qualifiers": {
+    "value": "4.9",
+    "unit": "%",
+    "metric": "top-5 validation error",
+    "dataset": "ImageNet"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "b06",
+   "text": "The batch-normalized ensemble reaches 4.8% top-5 test error.",
+   "subject": "batch-normalized ensemble",
+   "predicate": "achieves",
+   "object": "top-5 test error",
+   "evidence": [
+    "p7-b19-s3"
+   ],
+   "qualifiers": {
+    "value": "4.8",
+    "unit": "%"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R09"
+    ]
+   }
+  },
+  {
+   "id": "b07",
+   "text": "Batch Normalization causes higher test accuracy.",
+   "subject": "Batch Normalization",
+   "predicate": "causes",
+   "object": "higher test accuracy",
+   "evidence": [
+    "p6-b4-s2"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R17"
+    ]
+   }
+  },
+  {
+   "id": "b08",
+   "text": "Applying Batch Normalization before the nonlinearity results in a stable distribution of activation values.",
+   "subject": "applying Batch Normalization before the nonlinearity",
+   "predicate": "causes",
+   "object": "stable distribution of activation values",
+   "evidence": [
+    "p8-b5-s2"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R12"
+    ]
+   }
+  },
+  {
+   "id": "b09",
+   "text": "Batch Normalization achieves the same accuracy with 14 times fewer training steps and beats the original model by a significant margin.",
+   "subject": "Batch Normalization",
+   "predicate": "improves",
+   "object": "training speed",
+   "evidence": [
+    "p1-b5-s7"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R07"
+    ]
+   }
+  },
+  {
+   "id": "b10",
+   "text": "Batch Normalization speeds up training of the Inception network.",
+   "subject": "Batch Normalization",
+   "predicate": "speeds_up",
+   "object": "Inception training",
+   "evidence": [
+    "p7-b12-s2"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R02"
+    ]
+   }
+  },
+  {
+   "id": "b11",
+   "text": "BN-x30 reaches a higher maximum accuracy than BN-x5.",
+   "subject": "BN-x30",
+   "predicate": "higher_than",
+   "object": "BN-x5",
+   "evidence": [
+    "p7-b15-s1"
+   ],
+   "evidence_type": "inferred",
+   "qualifiers": {
+    "metric": "max accuracy"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R22"
+    ]
+   }
+  },
+  {
+   "id": "b12",
+   "text": "BN-Inception reports a top-5 error of 4.94%.",
+   "subject": "BN-Inception",
+   "predicate": "has_value",
+   "object": "top-5 error",
+   "evidence": [
+    "p7-b19-s2"
+   ],
+   "qualifiers": {
+    "value": "4.94",
+    "unit": "%"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R19"
+    ]
+   }
+  }
+ ],
+ "fields": {
+  "assertions": {
+   "kind": "assertions"
+  },
+  "evidence": {
+   "kind": "evidence"
+  },
+  "provenance": {
+   "kind": "provenance"
+  }
+ },
+ "conflicts": [
+  {
+   "issue": "abstract: 4.8% test error (p1-b5-s8) vs Sec. 4.2.3: 4.82% (p7-b19-s3), rounding",
+   "evidence": [
+    "p1-b5-s8",
+    "p7-b19-s3"
+   ]
+  }
+ ]
+}

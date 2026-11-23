@@ -1,0 +1,300 @@
+{
+ "arm_version": "1.1",
+ "paper": {
+  "title": "阅读14｜Nanopublication — nanopub-evidence-builder Skill",
+  "challenge_id": "product-arena-09-0e8befd4"
+ },
+ "entrypoint": "src/reproduce.py",
+ "environment": {
+  "dependencies": "requirements.txt",
+  "python_version": ">=3.9",
+  "gpu_required": false,
+  "extra_packages": [
+   "PyMuPDF>=1.23",
+   "numpy",
+   "rdflib (optional, TriG check)",
+   "tesseract (optional, OCR)"
+  ]
+ },
+ "execution": {
+  "log_path": "execution/run.log",
+  "exit_code": 0,
+  "ran_at": "2026-11-23T00:26:00.232491Z",
+  "wall_time_s": 13.62,
+  "ran_by": "agent",
+  "artifacts": [
+   {
+    "id": "metrics",
+    "path": "execution/results/metrics.json",
+    "type": "metric",
+    "format": "json",
+    "checksum_sha256": "240cb53d404fcab345d4a36feccc5b3edddf54947bbbe6317f16b1aff7e92911"
+   },
+   {
+    "id": "eval_rows",
+    "path": "execution/results/eval_rows.json",
+    "type": "data",
+    "format": "json",
+    "checksum_sha256": "b30dd18cc301aa1a8eed62f18db6a139a695068fc4fa35a803d2cdffb0e2b342"
+   },
+   {
+    "id": "metrics_at_freeze",
+    "path": "execution/results/metrics_at_freeze.json",
+    "type": "metric",
+    "format": "json",
+    "checksum_sha256": "18ba8e095b93361d5fb9c816df449042e6d1d8349532b7d339b1040b4322b098"
+   },
+   {
+    "id": "resnet_nanopubs",
+    "path": "execution/results/cases/resnet/output/nanopubs.json",
+    "type": "data",
+    "format": "json",
+    "checksum_sha256": "7ae66a913973b82cc03a67bd052571caec2563e301c7344e1868936c5eee3d2c"
+   },
+   {
+    "id": "resnet_trig",
+    "path": "execution/results/cases/resnet/output/nanopubs.trig",
+    "type": "data",
+    "format": "trig",
+    "checksum_sha256": "d8b502ee913b5c24f49037ee28f1cd32d1b260e95eb52ef659876794a11b459e"
+   },
+   {
+    "id": "resnet_review",
+    "path": "execution/results/cases/resnet/output/review.md",
+    "type": "data",
+    "format": "markdown",
+    "checksum_sha256": "a8b37b49e39233727bf18229c54c138173f82148162e64311812d239318f8014"
+   },
+   {
+    "id": "resnet_preview_page_001",
+    "path": "execution/results/cases/resnet/output/evidence_previews/page_001.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "8f7c23003f9f97f5a2be2e97afc4836acc5dfa3e0f842ed002dbe85291516cc6"
+   },
+   {
+    "id": "resnet_preview_page_005",
+    "path": "execution/results/cases/resnet/output/evidence_previews/page_005.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "c21a66a998c07d2c9365d8a97ba91546e5f2daad5d44b29ffd2add24f3d75bf6"
+   },
+   {
+    "id": "attention_nanopubs",
+    "path": "execution/results/cases/attention/output/nanopubs.json",
+    "type": "data",
+    "format": "json",
+    "checksum_sha256": "c9ec9d00d2df5df567ccc556a641c977074fa3dfcd95b90258fca0270763835a"
+   },
+   {
+    "id": "attention_trig",
+    "path": "execution/results/cases/attention/output/nanopubs.trig",
+    "type": "data",
+    "format": "trig",
+    "checksum_sha256": "b0ff3827c96f68d86325b5ec5a3e6a59c833cb0de52c5d12319d1928f3ba2932"
+   },
+   {
+    "id": "attention_review",
+    "path": "execution/results/cases/attention/output/review.md",
+    "type": "data",
+    "format": "markdown",
+    "checksum_sha256": "182e2b9622fb80609a33d7eb36f57024885cc61c5708669f449155ae2c7f7b91"
+   },
+   {
+    "id": "attention_preview_page_002",
+    "path": "execution/results/cases/attention/output/evidence_previews/page_002.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "a81c9d38c86baa2e3baed970a5a1940ea55e00ae814d909d815f10da3dae65a9"
+   },
+   {
+    "id": "attention_preview_page_008",
+    "path": "execution/results/cases/attention/output/evidence_previews/page_008.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "3085b04938e8013ef36132d09af209ba8e9100939cc90705418a410879f994e5"
+   },
+   {
+    "id": "bn_nanopubs",
+    "path": "execution/results/cases/bn/output/nanopubs.json",
+    "type": "data",
+    "format": "json",
+    "checksum_sha256": "6285fa82299534cf5778b21917763054ce40124fb8e1bac5905dbcdb00f43df8"
+   },
+   {
+    "id": "bn_trig",
+    "path": "execution/results/cases/bn/output/nanopubs.trig",
+    "type": "data",
+    "format": "trig",
+    "checksum_sha256": "1dc74c7932a0ce54944ed6aa9382a0664c162d07122b900821aabe1efef57d75"
+   },
+   {
+    "id": "bn_review",
+    "path": "execution/results/cases/bn/output/review.md",
+    "type": "data",
+    "format": "markdown",
+    "checksum_sha256": "0f14adf320f2f3b0b56e34c7fe443f227f3731c7b06c075f1981abbb1dc71af5"
+   },
+   {
+    "id": "bn_preview_page_001",
+    "path": "execution/results/cases/bn/output/evidence_previews/page_001.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "089dde86a6d05d796fd0d0cdf0f6e2057ed8fd62af6ed44fc8f3b3be6391ae81"
+   },
+   {
+    "id": "bn_preview_page_006",
+    "path": "execution/results/cases/bn/output/evidence_previews/page_006.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "6bfd6a7a4aa525720260c019a86adb5b0a24c1481e5f6cc22ee2279f9fc4d1c1"
+   },
+   {
+    "id": "kaplan_holdout_nanopubs",
+    "path": "execution/results/cases/kaplan_holdout/output/nanopubs.json",
+    "type": "data",
+    "format": "json",
+    "checksum_sha256": "aa880c54ee5dc47d166c622373dc78b6e196172f70008d7a67d67c0c1d941575"
+   },
+   {
+    "id": "kaplan_holdout_trig",
+    "path": "execution/results/cases/kaplan_holdout/output/nanopubs.trig",
+    "type": "data",
+    "format": "trig",
+    "checksum_sha256": "a480e8e92f6ffac25604ac3f3987069b323119e18693189720ce8e312385619b"
+   },
+   {
+    "id": "kaplan_holdout_review",
+    "path": "execution/results/cases/kaplan_holdout/output/review.md",
+    "type": "data",
+    "format": "markdown",
+    "checksum_sha256": "55e0e8ef244495bb907cd604c9f2ba9d1e5294f942934459dc8b5414446f1924"
+   },
+   {
+    "id": "kaplan_holdout_preview_page_001",
+    "path": "execution/results/cases/kaplan_holdout/output/evidence_previews/page_001.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "484d60edda3d8830db70da9965ce8c07c3c3545edb9d4d3560fdd3ac837ec9f1"
+   },
+   {
+    "id": "kaplan_holdout_preview_page_003",
+    "path": "execution/results/cases/kaplan_holdout/output/evidence_previews/page_003.png",
+    "type": "figure",
+    "format": "png",
+    "checksum_sha256": "e7672bfc7586b1878554defa64b4ebeeaf6ce86caac5834946e9fcbdaf377049"
+   }
+  ]
+ },
+ "expected_outputs": [
+  {
+   "name": "planted defects detected (dev set, rules tuned on it)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "planted defects detected (held-out paper, at code freeze)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "planted defects detected (held-out paper, after post-freeze fix)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "clean assertions not failed (all papers)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "clean assertions strict pass (no warning)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "clean evidence located at quote / table-cell level",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "metadata title exact",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "metadata arXiv id + version exact",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "author list recall",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "author list precision",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "RDF export round trip (N-Quads / JSON-LD / TriG)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "deterministic output (same draft -> same N-Quads)",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  },
+  {
+   "name": "robustness checks passed",
+   "type": "metric",
+   "produced_by": [
+    "metrics"
+   ],
+   "comparison_method": "numeric_tolerance"
+  }
+ ],
+ "handoff": {
+  "status": "partial",
+  "next_suggestion": "Run on the platform's three fixed cases; publish the GitHub repository; extend Chinese cue lexicons and compound-claim detection.",
+  "hypothesis": "Binding each atomic assertion to a verbatim, boxed quote plus deterministic rule checks catches most splitting, number, hedge, scope and provenance errors that a quote-exists check misses."
+ }
+}

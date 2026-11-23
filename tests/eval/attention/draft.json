@@ -1,0 +1,256 @@
+{
+ "source": "paper",
+ "assertions": [
+  {
+   "id": "t01",
+   "text": "The Transformer (big) achieves 28.4 BLEU on the WMT 2014 English-to-German translation task.",
+   "subject": "Transformer (big)",
+   "predicate": "achieves",
+   "object": "BLEU on WMT 2014 English-to-German",
+   "evidence": [
+    "p8-b17-s1"
+   ],
+   "qualifiers": {
+    "value": "28.4",
+    "unit": "BLEU",
+    "dataset": "WMT 2014 English-to-German"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "t02",
+   "text": "The big Transformer achieves a BLEU score of 41.0 on the WMT 2014 English-to-French translation task.",
+   "subject": "Transformer (big)",
+   "predicate": "achieves",
+   "object": "BLEU on WMT 2014 English-to-French",
+   "evidence": [
+    "p8-b18-s1"
+   ],
+   "qualifiers": {
+    "value": "41.0",
+    "unit": "BLEU",
+    "dataset": "WMT 2014 English-to-French"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "t03",
+   "text": "Transformer (big) scores 28.4 BLEU on newstest2014 EN-DE (Table 2).",
+   "subject": "Transformer (big)",
+   "predicate": "has_value",
+   "object": "BLEU EN-DE",
+   "evidence": [
+    {
+     "type": "table_cell",
+     "table": "Table 2",
+     "row": {
+      "Model": "Transformer (big)"
+     },
+     "column": "BLEU/EN-DE",
+     "value": "28.4"
+    }
+   ],
+   "qualifiers": {
+    "value": "28.4",
+    "metric": "BLEU",
+    "dataset": "newstest2014 EN-DE"
+   },
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "t04",
+   "text": "RNN sequence-to-sequence models have not been able to attain state-of-the-art results in small-data regimes.",
+   "subject": "RNN sequence-to-sequence models",
+   "predicate": "lacks_property",
+   "object": "state-of-the-art results in small-data regimes",
+   "evidence": [
+    "p9-b19-s3"
+   ],
+   "scope": "cited_work",
+   "cited_reference": "[37]",
+   "evidence_type": "cited",
+   "modality": "negated",
+   "expect": {
+    "clean": true
+   }
+  },
+  {
+   "id": "t05",
+   "text": "The big Transformer achieves a BLEU score of 41.8 on the WMT 2014 English-to-French translation task.",
+   "subject": "Transformer (big)",
+   "predicate": "achieves",
+   "object": "BLEU on WMT 2014 English-to-French",
+   "evidence": [
+    "p8-b18-s1"
+   ],
+   "qualifiers": {
+    "value": "41.8",
+    "unit": "BLEU",
+    "dataset": "WMT 2014 English-to-French"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R09"
+    ]
+   }
+  },
+  {
+   "id": "t06",
+   "text": "The Transformer allows for significantly more parallelization and can reach a new state of the art in translation quality.",
+   "subject": "Transformer",
+   "predicate": "enables",
+   "object": "more parallelization",
+   "evidence": [
+    "p2-b5-s2"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R07"
+    ]
+   }
+  },
+  {
+   "id": "t07",
+   "text": "RNN sequence-to-sequence models have not been able to attain state-of-the-art results in small-data regimes.",
+   "subject": "RNN sequence-to-sequence models",
+   "predicate": "lacks_property",
+   "object": "state-of-the-art results in small-data regimes",
+   "evidence": [
+    "p9-b19-s3"
+   ],
+   "modality": "negated",
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R20"
+    ]
+   }
+  },
+  {
+   "id": "t08",
+   "text": "RNN sequence-to-sequence models attain state-of-the-art results in small-data regimes.",
+   "subject": "RNN sequence-to-sequence models",
+   "predicate": "has_property",
+   "object": "state-of-the-art results in small-data regimes",
+   "evidence": [
+    "p9-b19-s3"
+   ],
+   "scope": "cited_work",
+   "cited_reference": "[37]",
+   "evidence_type": "cited",
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R14"
+    ]
+   }
+  },
+  {
+   "id": "t09",
+   "text": "Single-head attention is always 0.9 BLEU worse than the best setting.",
+   "subject": "single-head attention",
+   "predicate": "underperforms",
+   "object": "best setting",
+   "evidence": [
+    "p9-b16-s2"
+   ],
+   "qualifiers": {
+    "value": "0.9",
+    "unit": "BLEU"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R15"
+    ]
+   }
+  },
+  {
+   "id": "t10",
+   "text": "The Transformer outperforms the BerkeleyParser on English constituency parsing.",
+   "subject": "Transformer",
+   "predicate": "outperforms",
+   "object": "BerkeleyParser",
+   "evidence": [
+    "p10-b5-s1"
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R16"
+    ]
+   }
+  },
+  {
+   "id": "t11",
+   "text": "The big Transformer beats the best previously reported models by more than 2 BLEU on WMT 2014 English-to-German.",
+   "subject": "Transformer (big)",
+   "predicate": "outperforms",
+   "object": "best previously reported models",
+   "evidence": [
+    {
+     "page": 8,
+     "quote": "the big transformer beats the best previously reported models by more than 2 BLEU"
+    }
+   ],
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R04"
+    ]
+   }
+  },
+  {
+   "id": "t12",
+   "text": "On WMT 2014 English-to-German the big Transformer establishes a new state-of-the-art BLEU score of 28.4.",
+   "subject": "Transformer (big)",
+   "predicate": "achieves",
+   "object": "state-of-the-art BLEU on WMT 2014 English-to-German",
+   "evidence": [
+    {
+     "page": 3,
+     "quote": "establishing a new state-of-the-art BLEU score of 28.4"
+    }
+   ],
+   "qualifiers": {
+    "value": "28.4",
+    "unit": "BLEU",
+    "dataset": "WMT 2014 English-to-German"
+   },
+   "expect": {
+    "clean": false,
+    "rules": [
+     "R05"
+    ]
+   }
+  }
+ ],
+ "fields": {
+  "assertions": {
+   "kind": "assertions"
+  },
+  "evidence": {
+   "kind": "evidence"
+  },
+  "provenance": {
+   "kind": "provenance"
+  }
+ },
+ "conflicts": [
+  {
+   "issue": "abstract (p1-b16-s6) and Table 2 report 41.8 BLEU EN-FR for Transformer (big), Sec. 6.1 text reports 41.0 (p8-b18-s1)",
+   "evidence": [
+    "p1-b16-s6",
+    "p8-b18-s1"
+   ]
+  }
+ ]
+}

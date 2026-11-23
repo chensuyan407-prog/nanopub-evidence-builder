@@ -1,0 +1,1134 @@
+[
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r01",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r02",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_substring"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   5
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r03",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "table_cell"
+  ],
+  "bbox_precision": [
+   "table_cell"
+  ],
+  "pages": [
+   6
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r04",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.6,
+  "evidence_match": [
+   "table_cell",
+   "table_cell"
+  ],
+  "bbox_precision": [
+   "table_cell",
+   "table_cell"
+  ],
+  "pages": [
+   6,
+   6
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r05",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   5
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r06",
+  "clean": false,
+  "expected_rules": [
+   "R07"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R07"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r07",
+  "clean": false,
+  "expected_rules": [
+   "R09"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R09"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r08",
+  "clean": false,
+  "expected_rules": [
+   "R04"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R04"
+  ],
+  "confidence": 0.0,
+  "evidence_match": [
+   "not_found"
+  ],
+  "bbox_precision": [
+   null
+  ],
+  "pages": [
+   null
+  ],
+  "ok": true,
+  "b1_catches": true
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r09",
+  "clean": false,
+  "expected_rules": [
+   "R04",
+   "R09"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R04",
+   "R09"
+  ],
+  "confidence": 0.0,
+  "evidence_match": [
+   "not_found"
+  ],
+  "bbox_precision": [
+   "table_cell"
+  ],
+  "pages": [
+   6
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r10",
+  "clean": false,
+  "expected_rules": [
+   "R20"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R20"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "resnet",
+  "holdout": false,
+  "id": "r11",
+  "clean": false,
+  "expected_rules": [
+   "R15"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R15"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_substring"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   5
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t01",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t02",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t03",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "table_cell"
+  ],
+  "bbox_precision": [
+   "table_cell"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t04",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "warn",
+  "rules_found": [
+   "R24"
+  ],
+  "confidence": 0.65,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   9
+  ],
+  "ok": true,
+  "strict_pass": false,
+  "located": true
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t05",
+  "clean": false,
+  "expected_rules": [
+   "R09"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R09"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t06",
+  "clean": false,
+  "expected_rules": [
+   "R07"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R07"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   2
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t07",
+  "clean": false,
+  "expected_rules": [
+   "R20"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R20",
+   "R24"
+  ],
+  "confidence": 0.7,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   9
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t08",
+  "clean": false,
+  "expected_rules": [
+   "R14"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R14"
+  ],
+  "confidence": 0.65,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   9
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t09",
+  "clean": false,
+  "expected_rules": [
+   "R15"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R15"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   9
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t10",
+  "clean": false,
+  "expected_rules": [
+   "R16"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R16",
+   "R20"
+  ],
+  "confidence": 0.7,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   10
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t11",
+  "clean": false,
+  "expected_rules": [
+   "R04"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R04",
+   "R10"
+  ],
+  "confidence": 0.0,
+  "evidence_match": [
+   "not_found"
+  ],
+  "bbox_precision": [
+   null
+  ],
+  "pages": [
+   null
+  ],
+  "ok": true,
+  "b1_catches": true
+ },
+ {
+  "paper": "attention",
+  "holdout": false,
+  "id": "t12",
+  "clean": false,
+  "expected_rules": [
+   "R05"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R05",
+   "R10",
+   "R19"
+  ],
+  "confidence": 0.6,
+  "evidence_match": [
+   "exact_substring"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "b1_catches": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b01",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b02",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b03",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b04",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b05",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b06",
+  "clean": false,
+  "expected_rules": [
+   "R09"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R09"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b07",
+  "clean": false,
+  "expected_rules": [
+   "R17"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R17"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   6
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b08",
+  "clean": false,
+  "expected_rules": [
+   "R12"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R12"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b09",
+  "clean": false,
+  "expected_rules": [
+   "R07"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R07"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b10",
+  "clean": false,
+  "expected_rules": [
+   "R02"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R02"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b11",
+  "clean": false,
+  "expected_rules": [
+   "R22"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R22"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "bn",
+  "holdout": false,
+  "id": "b12",
+  "clean": false,
+  "expected_rules": [
+   "R19"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R19"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   7
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k1",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "table_cell"
+  ],
+  "bbox_precision": [
+   "table_cell"
+  ],
+  "pages": [
+   20
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k2",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k3",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   12
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k4",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_substring"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   8
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k5",
+  "clean": true,
+  "expected_rules": [],
+  "verdict": "pass",
+  "rules_found": [],
+  "confidence": 0.9,
+  "evidence_match": [
+   "exact_substring"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "strict_pass": true,
+  "located": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k6",
+  "clean": false,
+  "expected_rules": [
+   "R09"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R09"
+  ],
+  "confidence": 0.2,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   12
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k7",
+  "clean": false,
+  "expected_rules": [
+   "R07"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R07"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   1
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k8",
+  "clean": false,
+  "expected_rules": [
+   "R12"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R12"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   9
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k9",
+  "clean": false,
+  "expected_rules": [
+   "R14"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R14"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   12
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k10",
+  "clean": false,
+  "expected_rules": [
+   "R16"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R16"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   12
+  ],
+  "ok": true,
+  "b1_catches": false
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k11",
+  "clean": false,
+  "expected_rules": [
+   "R04"
+  ],
+  "verdict": "fail",
+  "rules_found": [
+   "R04",
+   "R09",
+   "R17"
+  ],
+  "confidence": 0.0,
+  "evidence_match": [
+   "not_found"
+  ],
+  "bbox_precision": [
+   null
+  ],
+  "pages": [
+   null
+  ],
+  "ok": true,
+  "b1_catches": true
+ },
+ {
+  "paper": "kaplan_holdout",
+  "holdout": true,
+  "id": "k12",
+  "clean": false,
+  "expected_rules": [
+   "R15"
+  ],
+  "verdict": "warn",
+  "rules_found": [
+   "R15"
+  ],
+  "confidence": 0.8,
+  "evidence_match": [
+   "exact_sentence"
+  ],
+  "bbox_precision": [
+   "quote"
+  ],
+  "pages": [
+   3
+  ],
+  "ok": true,
+  "b1_catches": false
+ }
+]

@@ -1,0 +1,63 @@
+{
+ "_about": "Controlled predicate vocabulary for assertions. 'iri' is a local term in the nanopub temp namespace (not dereferenceable). 'close_match' lists well-known ontology terms that are close in meaning; they are hints for downstream mapping, not asserted equivalences. relation_type drives the quality checks in np_check.py (see README 'Rules').",
+ "namespace": "http://purl.org/nanopub/temp/npeb-terms#",
+ "relation_types": {
+  "quantitative": "subject has a measured/reported value for a metric; qualifiers.value (+unit, metric) required; the value must appear in the evidence",
+  "comparative": "subject is better/worse/higher/lower than object on some metric; evidence must contain a comparison cue",
+  "causal": "subject causes / leads to / enables object; evidence must contain a causal cue, otherwise downgrade to associative",
+  "associative": "subject is correlated / associated with object, no direction of cause claimed",
+  "descriptive": "subject has a property, is a kind of, is part of, consists of object",
+  "methodological": "subject (study/method) uses / is evaluated on / is trained on object",
+  "existence": "subject exists / is observed / is detected (object may be a setting)",
+  "negative": "subject does not have the relation (explicit negative finding); polarity negative"
+ },
+ "predicates": {
+  "has_value":            {"relation_type": "quantitative", "polarity": "positive", "label": "has measured value", "close_match": ["sio:SIO_000216 (has measurement value)"]},
+  "achieves":             {"relation_type": "quantitative", "polarity": "positive", "label": "achieves (a reported result)"},
+  "outperforms":          {"relation_type": "comparative", "polarity": "positive", "label": "outperforms"},
+  "underperforms":        {"relation_type": "comparative", "polarity": "positive", "label": "performs worse than"},
+  "higher_than":          {"relation_type": "comparative", "polarity": "positive", "label": "has higher value than"},
+  "lower_than":           {"relation_type": "comparative", "polarity": "positive", "label": "has lower value than"},
+  "comparable_to":        {"relation_type": "comparative", "polarity": "positive", "label": "is comparable to"},
+  "improves":             {"relation_type": "comparative", "polarity": "positive", "label": "improves"},
+  "reduces":              {"relation_type": "comparative", "polarity": "positive", "label": "reduces"},
+  "increases":            {"relation_type": "causal", "polarity": "positive", "label": "increases", "close_match": ["RO:0002213 (positively regulates) - only for biological processes"]},
+  "decreases":            {"relation_type": "causal", "polarity": "positive", "label": "decreases", "close_match": ["RO:0002212 (negatively regulates) - only for biological processes"]},
+  "causes":               {"relation_type": "causal", "polarity": "positive", "label": "causes", "close_match": ["RO:0002410 (causally related to)"]},
+  "enables":              {"relation_type": "causal", "polarity": "positive", "label": "enables / makes possible"},
+  "prevents":             {"relation_type": "causal", "polarity": "positive", "label": "prevents"},
+  "correlates_with":      {"relation_type": "associative", "polarity": "positive", "label": "is correlated with", "close_match": ["RO:0002610 (correlated with)"]},
+  "associated_with":      {"relation_type": "associative", "polarity": "positive", "label": "is associated with"},
+  "has_property":         {"relation_type": "descriptive", "polarity": "positive", "label": "has property"},
+  "is_a":                 {"relation_type": "descriptive", "polarity": "positive", "label": "is a kind of", "close_match": ["rdfs:subClassOf / rdf:type"]},
+  "part_of":              {"relation_type": "descriptive", "polarity": "positive", "label": "is part of", "close_match": ["BFO:0000050 (part of)"]},
+  "has_part":             {"relation_type": "descriptive", "polarity": "positive", "label": "has part", "close_match": ["BFO:0000051 (has part)"]},
+  "defined_as":           {"relation_type": "descriptive", "polarity": "positive", "label": "is defined as"},
+  "uses":                 {"relation_type": "methodological", "polarity": "positive", "label": "uses (method, data, tool)"},
+  "evaluated_on":         {"relation_type": "methodological", "polarity": "positive", "label": "is evaluated on"},
+  "trained_on":           {"relation_type": "methodological", "polarity": "positive", "label": "is trained on"},
+  "proposes":             {"relation_type": "methodological", "polarity": "positive", "label": "proposes / introduces"},
+  "observed_in":          {"relation_type": "existence", "polarity": "positive", "label": "is observed in"},
+  "detected_in":          {"relation_type": "existence", "polarity": "positive", "label": "is detected in"},
+  "does_not_improve":     {"relation_type": "negative", "polarity": "negative", "label": "does not improve"},
+  "not_associated_with":  {"relation_type": "negative", "polarity": "negative", "label": "is not associated with"},
+  "does_not_cause":       {"relation_type": "negative", "polarity": "negative", "label": "does not cause"},
+  "lacks_property":       {"relation_type": "negative", "polarity": "negative", "label": "does not have property"}
+ },
+ "evidence_types": {
+  "direct":   {"label": "the quoted text itself states the assertion (reported result or explicit author statement)", "eco": "ECO:0000006 (experimental evidence) when the quote reports this paper's own result; ECO:0000304 (author statement supported by traceable reference) otherwise"},
+  "inferred": {"label": "the assertion follows from the quoted text by an explicit reasoning step written in 'reasoning' (e.g. a comparison of two table cells)", "eco": "ECO:0000305 (curator inference used in manual assertion)"},
+  "cited":    {"label": "the paper reports someone else's finding; the claim belongs to the cited work", "eco": "ECO:0000304 (author statement supported by traceable reference)"}
+ },
+ "scopes": {
+  "this_work": "finding/statement of the paper being read",
+  "cited_work": "finding of a cited paper, reported here (give cited_reference)",
+  "background": "general background statement, not a finding of this paper"
+ },
+ "modalities": {
+  "asserted": "stated as fact",
+  "hedged": "stated with uncertainty (may, suggests, likely ...); keep the hedge in the assertion text",
+  "negated": "explicit negative finding",
+  "hypothesis": "proposed but not tested"
+ }
+}
