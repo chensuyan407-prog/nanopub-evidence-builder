@@ -10,7 +10,7 @@ out = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(ROOT), 
 n = 0
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for r, ds, fs in os.walk(ROOT):
-        ds[:] = [d for d in ds if d not in ("__pycache__", "parse_cache")]
+        ds[:] = [d for d in ds if d not in ("__pycache__", "parse_cache", ".git")]
         for f in fs:
             p = os.path.join(r, f)
             rel = os.path.relpath(p, ROOT).replace(os.sep, "/")
