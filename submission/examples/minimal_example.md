@@ -13,12 +13,14 @@ Paper: arXiv 2001.08361v1 (Kaplan et al., *Scaling Laws for Neural Language Mode
 
 ## Calls
 
+(`PY` / `SKILL_DIR` set by the two discovery lines at the top of SKILL.md.)
+
 ```bash
-python $SKILL_DIR/scripts/np_init.py --case /input/case.json --out /app/output --work /app/work
+$PY $SKILL_DIR/scripts/np_init.py --case /input/case.json --out /app/output --work /app/work
 #  -> contract fields + kind suggestions; metadata: title, 10 authors (needs_review), arXiv 2001.08361 v1, year 2020
-python $SKILL_DIR/scripts/np_find.py /app/output/parsed/paper "depends very weakly on model shape" --top 5
+$PY $SKILL_DIR/scripts/np_find.py /app/output/parsed/paper "depends very weakly on model shape" --top 5
 #  p8-b5-s1 | p8 | Empirical Results ... | Transformer performance depends very weakly on the shape parameters ...
-python $SKILL_DIR/scripts/table_query.py /app/output/parsed/paper --table "Table 5" --list
+$PY $SKILL_DIR/scripts/table_query.py /app/output/parsed/paper --table "Table 5" --list
 #  row keys: ["α N = 0.076", "N c = 8.8 × 10^13 params (non-embed)"], ...
 ```
 
@@ -42,7 +44,7 @@ python $SKILL_DIR/scripts/table_query.py /app/output/parsed/paper --table "Table
 ```
 
 ```bash
-python $SKILL_DIR/scripts/np_build.py --draft /app/work/draft.json --out /app/output
+$PY $SKILL_DIR/scripts/np_build.py --draft /app/work/draft.json --out /app/output
 ```
 
 ## Output (excerpt of `/app/output/result.json`)

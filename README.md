@@ -1,8 +1,8 @@
-# nanopub-evidence-builder 0.2.0 — submission bundle for 阅读14｜Nanopublication
+# nanopub-evidence-builder 0.3.0 — submission bundle for 阅读14｜Nanopublication
 
-Skill that turns the conclusions of a scientific PDF into **nanopublications**: one atomic, checkable assertion
+Skill that turns the conclusions of a scientific paper (PDF, or .md / .txt / .docx / .html) into **nanopublications**: one atomic, checkable assertion
 per record, bound to the smallest verbatim evidence (page, block, sentence id, line boxes or table cell) and to
-source provenance (title, authors, year, DOI / arXiv id + version, PDF SHA-256), checked by 26 deterministic
+source provenance (title, authors, year, DOI / arXiv id + version, PDF SHA-256), checked by 31 deterministic
 quality rules and exported as JSON, TriG, N-Quads and JSON-LD.
 
 | path | content |

@@ -4,3 +4,6 @@ __pycache__/
 tests/pdfs/
 execution/results/cases/
 execution/results/robustness/
+execution/results/v03/*
+!execution/results/v03/test_v03.json
+nanopub-evidence-builder_v0.3_交接报告.docx

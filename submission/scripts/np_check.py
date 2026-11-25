@@ -34,6 +34,12 @@ Rules (see README for rationale):
   R24 duplicate_assertion       warn  same subject|predicate|object|value as another record
   R25 provenance_incomplete     fail/warn  missing title or pdf hash (fail) / authors, year, identifier, version (warn)
   R26 image_evidence_unverified warn  evidence read from a page image (not machine-checkable)
+  R27 magnitude_mismatch        fail  '6 billion' vs evidence '6 million' (same digits, other scale); '60 亿' == '6 billion' passes R09
+  R28 reasoning_unsupported     fail  inferred reasoning uses a number absent from the evidence, an arithmetic step that does
+                                      not compute (7.40 - 4.49 = 3.91), or a false comparison (7.40 < 4.49)
+  R29 cited_scope_suspicious    warn  scope=cited_work but the support evidence is first-person and cites nothing
+  R30 image_region_unbound      fail/warn  image_region without page+bbox (fail) / without crop, provenance hash or transcription (warn)
+  R31 figure_claim_unbound      warn  the assertion names a figure (Fig. 3 / 图3) but no evidence comes from that figure
 """
 import argparse
 import json
@@ -56,7 +62,11 @@ VERB_RE = r"(?:is|are|was|were|has|have|had|can|could|achieves?|achieved|improve
 COMPOUND_RES = [
     (re.compile(r";"), "semicolon joins clauses"),
     (re.compile(r",?\s+(?:and|but|while|whereas)\s+(?:(?:it|they|this|these|the\s+\w+|\w+)\s+)?(?:also\s+)?" + VERB_RE + r"\b", re.I), "conjunction + second verb"),
-    (re.compile(r"(?:，|,)\s*(?:并且|而且|同时|但|而)"), "Chinese clause conjunction"),
+    (re.compile(r"\b(?:while|whereas)\s+(?:also\s+)?(?:improving|reducing|increasing|decreasing|lowering|raising|achieving|gaining|maintaining|preserving|outperforming|hurting|degrading)\b", re.I), "'while' + second action"),
+    (re.compile(r"(?:，|,)\s*(?:并且|而且|同时|但|而|且|并|还|也)"), "Chinese clause conjunction"),
+    (re.compile(r"并且|而且|同时还|此外|另外"), "Chinese clause conjunction"),
+    (re.compile(r"\brespectively\b|分别"), "'respectively' pairs several results"),
+    (re.compile(r"\bas well as\s+(?:\w+\s+){0,2}" + VERB_RE + r"\b", re.I), "'as well as' + second verb"),
     (re.compile(r"\b(?:1\)|\(i\)|first,).*\b(?:2\)|\(ii\)|second,)", re.I), "enumerated findings"),
 ]
 COND_RE = re.compile(r"\b(on|in|under|when|for|with|at|using|across)\s+(?:the\s+|a\s+|an\s+)?((?:[A-Z][\w\-./]*|\d[\w\-./]*)(?:\s+(?:[A-Z0-9][\w\-./]*))*)")
@@ -126,6 +136,96 @@ def num_in(num, ev_cores, ev_text_norm):
     return re.search(r"(?<![\d.])" + re.escape(num.replace(",", "").rstrip("%x×")) + r"(?![\d])", ev_text_norm.replace(",", "")) is not None
 
 
+_LOC_NUM = re.compile(r"(?:table|tab\.|fig(?:ure)?\.?|eq\.?|equation|sec(?:tion)?\.?|row|column|col\.|page|p\.|appendix|表|图|式)\s*\(?[A-Za-z]?\d+", re.I)
+_ARITH = re.compile(r"((?:[(\s]*[-+]?\d+(?:\.\d+)?\s*%?[)\s]*[-+*/x×÷−][(\s]*)+[-+]?\d+(?:\.\d+)?\s*%?[)\s]*)=\s*([-+]?\d+(?:\.\d+)?)\s*(%?)")
+_CMP = re.compile(r"<=|>=|≤|≥|<|>")
+
+
+def _value_tokens(t):
+    """(start, end, float, raw) of value numbers in t, skipping locators (Table 4) and name parts (ResNet-34, top-5)."""
+    masked = _LOC_NUM.sub(lambda m: " " * len(m.group(0)), t)
+    toks = []
+    for m in re.finditer(r"(?<![\w.\-])([-+]?\d+(?:\.\d+)?)(?![\w\-])", masked):
+        toks.append((m.start(), m.end(), float(m.group(1)), m.group(1)))
+    for m in re.finditer(r"(?<=[A-Za-z])-(\d+(?:\.\d+)?)", masked):  # 'ResNet-34' is a name, not a value
+        toks = [t for t in toks if not (t[0] <= m.start(1) < t[1])]
+    return toks
+
+
+def _safe_eval(expr):
+    import ast
+    import operator as op
+    ops = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv, ast.USub: op.neg, ast.UAdd: op.pos}
+
+    def ev(n):
+        if isinstance(n, ast.Expression):
+            return ev(n.body)
+        if isinstance(n, ast.Constant) and isinstance(n.value, (int, float)) and not isinstance(n.value, bool):
+            return float(n.value)
+        if isinstance(n, ast.BinOp) and type(n.op) in ops:
+            return ops[type(n.op)](ev(n.left), ev(n.right))
+        if isinstance(n, ast.UnaryOp) and type(n.op) in ops:
+            return ops[type(n.op)](ev(n.operand))
+        raise ValueError("unsupported")
+    e = expr.replace("×", "*").replace("x", "*").replace("÷", "/").replace("−", "-").replace("%", "")
+    if len(e) > 200:
+        raise ValueError("too long")
+    return ev(ast.parse(e.strip(), mode="eval"))
+
+
+def check_reasoning(reasoning, ev_text, ev=None):
+    """R28: every operand of an inferred record's reasoning must be in the evidence, every printed arithmetic
+    step must compute, every printed comparison must hold."""
+    out = []
+    r = C.norm(reasoning, lower=False)
+    ev_cores = {C.num_core(n) for n in C.numbers(ev_text)}
+    ev_norm = C.norm(ev_text, lower=False)
+    results, bad_steps = set(), []
+    for m in _ARITH.finditer(r):
+        lhs, rhs, pct = m.group(1), m.group(2), m.group(3)
+        try:
+            got = _safe_eval(lhs)
+        except Exception:
+            continue
+        dec = len(rhs.split(".")[1]) if "." in rhs else 0
+        want = float(rhs)
+        tol = 0.5 * 10 ** -dec + 1e-9
+        ok = abs(got - want) <= tol or (pct and abs(got * 100 - want) <= tol)
+        if ok:
+            results.add(C.num_core(rhs))
+        else:
+            bad_steps.append(f"{lhs.strip()} = {rhs}{pct} (computes to {round(got, 6)})")
+    if bad_steps:
+        out.append(issue("R28", "fail", "an arithmetic step in the reasoning does not compute", bad_steps, "redo the calculation"))
+    toks = _value_tokens(r)
+    for m in _CMP.finditer(r):
+        left = [t for t in toks if t[1] <= m.start() and not _CMP.search(r[t[1]:m.start()])]
+        right = [t for t in toks if t[0] >= m.end() and not _CMP.search(r[m.end():t[0]])]
+        if not left or not right:
+            continue
+        a, b, sym = left[-1][2], right[0][2], m.group(0)
+        holds = {"<": a < b, ">": a > b, "<=": a <= b, "≤": a <= b, ">=": a >= b, "≥": a >= b}[sym]
+        if not holds:
+            out.append(issue("R28", "fail", "a comparison in the reasoning is false", f"{left[-1][3]} {sym} {right[0][3]}",
+                             "check the direction of the comparison and the predicate"))
+    missing = sorted({t[3] for t in toks if C.num_core(t[3]) not in results and not num_in(t[3], ev_cores, ev_norm)})
+    if missing:
+        out.append(issue("R28", "fail", "the reasoning uses number(s) that are in no evidence item", missing,
+                         "add the table cell / sentence that holds each operand, or fix the number"))
+    if ev:
+        tcells = [e for e in ev if e.get("kind") == "table_cell" and e.get("match") == "table_cell"]
+        if len(tcells) >= 2:
+            tables = {C.norm(e.get("table_id") or e.get("table") or "") for e in tcells if (e.get("table_id") or e.get("table"))}
+            cols = {C.norm(e.get("column") or "") for e in tcells if e.get("column")}
+            if len(tables) > 1 and ("-" in r or _CMP.search(r)):
+                out.append(issue("R28", "fail", "inferred comparison/difference mixes cells from different tables",
+                                 sorted(tables), "compare cells from the same table and metric"))
+            elif len(cols) > 1 and ("-" in r or _CMP.search(r)):
+                out.append(issue("R28", "fail", "inferred comparison/difference mixes cells from different columns",
+                                 sorted(cols), "compare cells from the same metric/column"))
+    return out
+
+
 def check_record(np_rec, vocab, all_keys=None, references=None):
     out = []
     a = np_rec.get("assertion", {})
@@ -186,6 +286,12 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
         if mm and len(text.split()) > 12:
             out.append(issue("R07", "warn", "possible compound assertion (', and' starts a second clause?)", mm.group(0),
                              "if the part after ', and' is a separate claim, split it"))
+    if not any(i["rule"] == "R07" and i["severity"] == "fail" for i in out):
+        mv = re.search(r"(\d+(?:\.\d+)?\s*%?)\s+(?:[A-Za-z\-]+\s+){0,4}(?:and|,)\s+(?:(?:a|an|the)\s+)?(\d+(?:\.\d+)?\s*%?)(?!\s*(?:-|layer|times))", text_no_paren)
+        if mv and not re.search(r"\bbetween\b|\bfrom\s+\d", text_no_paren[:mv.end()], re.I) \
+                and C.num_core(mv.group(1)) != C.num_core(mv.group(2)):
+            out.append(issue("R07", "fail", "assertion reports several results in one record", mv.group(0),
+                             "one assertion per value: give each its own qualifiers.value and evidence"))
     for slot, val in (("subject", subj), ("object", obj)):
         if re.search(r"\b(and|or)\b|、|和|及|以及|(?<=[A-Za-z])/(?=[A-Za-z])", val) and not re.search(r"\bbetween\b|\bboth\b|trade-off|input/output|signal-to-noise", val, re.I):
             out.append(issue("R08", "warn", f"{slot} may contain several entities", val,
@@ -199,11 +305,24 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
     ev_norm = C.norm(ev_text, lower=False)
     ev_cores = {C.num_core(n) for n in C.numbers(ev_text)}
     qual_text = " ".join(str(v) for k, v in quals.items() if k not in ("condition", "note") and v not in (None, ""))
+    if quals.get("value") not in (None, "") and quals.get("unit") not in (None, ""):
+        qual_text += f" {quals['value']} {quals['unit']}"
     vals, ids = value_numbers(text + " " + qual_text)
-    miss = sorted({n for n in vals if not num_in(n, ev_cores, ev_norm)})
+    raw_ev = " ".join((e.get("quote") or "") + " " + (e.get("transcription") or "") + " " + (e.get("table_context") or "") for e in ev)
+    ev_mag = [m[2] for m in C.magnitudes(raw_ev)]
+    ev_mag_all = ev_mag + C.plain_values(raw_ev)
+    a_mag = C.magnitudes(text + " " + qual_text)
+    by_scale = {mant for (_, mant, v) in a_mag if C.same_magnitude(mant, v, ev_mag_all)}
+    scale_ok = {C.num_core(x) for x in by_scale}
+    miss = sorted({n for n in vals if not num_in(n, ev_cores, ev_norm) and C.num_core(n) not in scale_ok})
     if miss:
         out.append(issue("R09", "fail", "number(s) in the assertion not found in any evidence item", miss,
                          "fix the number, or add the evidence (sentence/table cell) that states it"))
+    wrong_scale = sorted({raw for (raw, mant, v) in a_mag
+                          if mant not in by_scale and num_in(mant, ev_cores, ev_norm) and ev_mag})
+    if wrong_scale:
+        out.append(issue("R27", "fail", "number has another magnitude than in the evidence (thousand / million / billion / 万 / 亿 / 10^n)",
+                         wrong_scale, "copy the magnitude as printed, or convert exactly (6 billion = 60 亿 = 6x10^9)"))
     miss_id = sorted({n for n in ids if not num_in(n, ev_cores, ev_norm)} - set(miss))
     if miss_id:
         out.append(issue("R10", "warn", "number inside a name not found in evidence (may come from elsewhere in the paper)", miss_id,
@@ -241,6 +360,9 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
         key = C.norm(name.split()[0]).strip(".,;:")
         if key and key not in a_scope_text:
             dropped.append(m.group(0).strip())
+    lim_ev = C.find_words(sup_text, C.LIMITERS)
+    lim_as = set(C.find_words(text + " " + json.dumps(quals, ensure_ascii=False), C.LIMITERS))
+    dropped += [f"limiter '{w}'" for w in lim_ev if w not in lim_as]
     if dropped:
         out.append(issue("R16", "warn", "evidence names a setting/dataset/condition the assertion does not carry", sorted(set(dropped))[:6],
                          "add it to qualifiers (dataset / condition) or to the assertion text"))
@@ -259,14 +381,22 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
     scope = a.get("scope") or "this_work"
     sup_cites = [c.get("marker") if isinstance(c, dict) else c for e in support for c in (e.get("citations") or [])]
     related = any(re.search(r"related work|background|previous work|prior work|相关工作", " ".join(e.get("section_path") or []), re.I) for e in support)
-    if scope == "this_work" and (sup_cites or related):
-        out.append(issue("R20", "warn", "scope=this_work but the support evidence cites other work" + (" / is in a related-work section" if related else ""),
-                         sup_cites[:5] or "related-work section",
+    attrib = [m.group(0) for e in support for m in [C.ATTRIBUTION_RE.search(e.get("quote") or "")]
+              if m and not C.FIRST_PERSON_RE.search(e.get("quote") or "")]
+    if scope == "this_work" and (sup_cites or related or attrib):
+        out.append(issue("R20", "warn", "scope=this_work but the support evidence cites other work" + (" / is in a related-work section" if related else "")
+                         + (" / attributes the finding to others" if attrib and not sup_cites else ""),
+                         sup_cites[:5] or attrib[:3] or "related-work section",
                          "if the finding belongs to the cited paper set scope=cited_work and cited_reference"))
     if scope == "cited_work" and not (a.get("cited_reference_resolved") or a.get("cited_reference")):
         out.append(issue("R21", "warn", "scope=cited_work but no cited_reference given", None, "give the reference marker, e.g. [41]"))
     elif scope == "cited_work" and a.get("cited_reference") and not a.get("cited_reference_resolved"):
         out.append(issue("R21", "warn", "cited_reference could not be resolved to the reference list", a.get("cited_reference")))
+    text_sup = [e for e in support if e.get("kind") == "text"]
+    if scope == "cited_work" and text_sup and not sup_cites and not any(C.ATTRIBUTION_RE.search(e.get("quote") or "") for e in text_sup) \
+            and all(C.FIRST_PERSON_RE.search(e.get("quote") or "") for e in text_sup):
+        out.append(issue("R29", "warn", "scope=cited_work but the support evidence reads as this paper's own result (first person, no citation)",
+                         None, "use scope=this_work unless the quote reports another paper's finding"))
     et = np_rec.get("evidence_type") or "direct"
     if et == "inferred" and not (np_rec.get("reasoning") or "").strip():
         out.append(issue("R22", "fail", "evidence_type=inferred without a reasoning statement", None, "write the reasoning step"))
@@ -277,6 +407,36 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
             if frac < 0.3:
                 out.append(issue("R23", "warn", f"only {frac:.0%} of the assertion's content words occur in the evidence", None,
                                  "if the claim is your inference set evidence_type=inferred + reasoning"))
+    if et == "inferred" and (np_rec.get("reasoning") or "").strip():
+        out += check_reasoning(np_rec["reasoning"], raw_ev, ev)
+    # same-value statistical metric swap (e.g. HR 1.5 vs OR 1.5)
+    _METRIC_ABBR = re.compile(r"\b(HR|OR|RR|AUC|F1|BLEU|RMSE|MAE|MSE|R2)\b")
+    a_metrics = set(_METRIC_ABBR.findall(text + " " + str(quals.get("metric") or "")))
+    e_metrics = set(_METRIC_ABBR.findall(raw_ev))
+    if a_metrics and e_metrics and not (a_metrics & e_metrics):
+        out.append(issue("R09", "fail", f"metric mismatch between assertion ({sorted(a_metrics)}) and evidence ({sorted(e_metrics)})",
+                         {"assertion": sorted(a_metrics), "evidence": sorted(e_metrics)},
+                         "use the exact metric stated in the evidence (do not swap HR/OR/RR/etc.)"))
+    for e in ev:
+        if e.get("kind") != "image_region":
+            continue
+        if not e.get("page") or not e.get("bbox"):
+            out.append(issue("R30", "fail", "image_region evidence without page and bbox: nobody can find the region again",
+                             {"page": e.get("page"), "bbox": e.get("bbox")}, "crop it with crop_region.py and pass page + bbox"))
+        else:
+            lack = [k for k, ok in (("crop", e.get("crop")), ("provenance.source_pdf_sha256", (e.get("provenance") or {}).get("source_pdf_sha256")),
+                                    ("transcription", (e.get("transcription") or "").strip())) if not ok]
+            if lack:
+                out.append(issue("R30", "warn", "image_region evidence is not fully reproducible", lack,
+                                 "use crop_region.py output (crop + provenance) and write what you read in transcription"))
+    figs = set(re.findall(r"(?:\bfig(?:ure)?\.?\s*|图\s*)(\d+)", C.norm(text)))
+    if figs:
+        has_img = any(e.get("kind") == "image_region" for e in ev)
+        ev_fig = " ".join(C.norm(" ".join(filter(None, [e.get("quote"), e.get("transcription"), e.get("table_caption")]))) for e in ev)
+        unbound = sorted(f for f in figs if not has_img and not re.search(r"(?:^|\s)(?:fig(?:ure)?\.?\s*|图\s*)" + f + r"\s*[:.]", ev_fig))
+        if unbound:
+            out.append(issue("R31", "warn", "assertion refers to a figure but no evidence item comes from it (caption or image region)",
+                             [f"Fig. {f}" for f in unbound], "add the caption (quote) or an image_region crop of the plotted value"))
     key = np_rec.get("dedup_key")
     if all_keys is not None and key and all_keys.get(key, 0) > 1:
         out.append(issue("R24", "warn", "duplicate of another assertion (same subject|predicate|object|value)", key, "merge them"))
@@ -285,6 +445,8 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
         return ((prov.get("source") or {}).get(k) or {}).get("value") if isinstance((prov.get("source") or {}).get(k), dict) else (prov.get("source") or {}).get(k)
     unrep = set(prov.get("unreported_fields") or [])
     for k in ("title", "pdf_sha256"):
+        if k == "pdf_sha256" and C.src_hash(prov.get("source") or {}):
+            continue
         if not pv(k):
             sev = "warn" if (k == "title" and k in unrep) else "fail"
             out.append(issue("R25", sev, f"provenance: {k} missing", k))

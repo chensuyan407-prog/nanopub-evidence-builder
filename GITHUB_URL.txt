@@ -1,2 +1,2 @@
-https://github.com/chensuyan407-prog/nanopub-evidence-builder/tree/main/submission
+https://github.com/chensuyan407-prog/nanopub-evidence-builder
 submission/SKILL.md

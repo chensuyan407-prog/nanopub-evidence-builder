@@ -43,8 +43,8 @@
  "papers": {
   "resnet": {
    "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
-   "init_seconds": 1.31,
-   "build_seconds": 0.52,
+   "init_seconds": 1.59,
+   "build_seconds": 0.66,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 552,
@@ -71,6 +71,7 @@
      "R07:fail": 1,
      "R09:fail": 2,
      "R04:fail": 2,
+     "R16:warn": 1,
      "R20:warn": 1,
      "R15:warn": 1
     }
@@ -86,8 +87,8 @@
   },
   "attention": {
    "pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
-   "init_seconds": 1.16,
-   "build_seconds": 0.56,
+   "init_seconds": 1.33,
+   "build_seconds": 0.72,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 633,
@@ -135,8 +136,8 @@
   },
   "bn": {
    "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
-   "init_seconds": 1.11,
-   "build_seconds": 0.5,
+   "init_seconds": 1.23,
+   "build_seconds": 0.65,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 569,
@@ -180,8 +181,8 @@
   },
   "kaplan_holdout": {
    "pdf_sha256": "a41bd7877fd1a6bcbba096b2619618bd2f90e02488f2365644903eb2f7c6a494",
-   "init_seconds": 3.44,
-   "build_seconds": 0.94,
+   "init_seconds": 4.2,
+   "build_seconds": 1.08,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 665,
@@ -227,11 +228,11 @@
     "answer_alpha_n": "0.076",
     "answer_shape": "No. Within reasonable limits performance depends very weakly on model shape (depth, width, heads) when N is held fixed.",
     "nanopublications": "<list len 5>",
-    "provenance": "<dict len 14>"
+    "provenance": "<dict len 16>"
    }
   }
  },
- "wall_seconds": 11.11,
+ "wall_seconds": 13.46,
  "robustness": {
   "encrypted_pdf": {
    "status": "failed",
@@ -241,7 +242,7 @@
   },
   "no_pdf": {
    "status": "failed",
-   "reason": "no PDF found in case.json or the input directory",
+   "reason": "no paper file (PDF / md / txt / docx / html) found in case.json or the input directory",
    "expected_status": "failed",
    "ok": true
   },
@@ -255,10 +256,16 @@
    "status_reason": {
     "failing_records": 0,
     "unfilled_fields": [],
+    "needs_review_fields": [],
+    "unfilled_optional_fields": [],
+    "schema_problems": [],
     "export_ok": true,
     "image_read_records_need_human_review": [
      "i1"
-    ]
+    ],
+    "unread_source_pages": [],
+    "contract_errors": [],
+    "assertions_not_built": []
    },
    "ok": true
   },
@@ -267,6 +274,12 @@
    "nquads": "nanopubs.nq",
    "has_summary": true,
    "fails": 0,
+   "ok": true
+  },
+  "v03_regression_suite": {
+   "n_tests": 66,
+   "passed": 66,
+   "failed": [],
    "ok": true
   }
  },

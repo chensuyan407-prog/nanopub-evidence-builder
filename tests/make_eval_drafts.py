@@ -34,7 +34,7 @@ resnet = [
     A("r03", "ResNet-152 has a single-model top-5 error of 4.49% on the ImageNet validation set.", "ResNet-152", "has_value", "top-5 error",
       [T4("ResNet-152", "4.49")], PASS, qualifiers={"value": "4.49", "unit": "%", "metric": "top-5 err.", "dataset": "ImageNet validation set", "condition": "single model"}),
     A("r04", "ResNet-152 has a lower single-model top-5 validation error than ResNet-34 B on ImageNet.", "ResNet-152", "lower_than", "ResNet-34 B",
-      [T4("ResNet-152"), T4("ResNet-34 B")], PASS, evidence_type="inferred", reasoning="Table 4 top-5 err.: ResNet-152 4.49 < ResNet-34 B 7.40",
+      [T4("ResNet-152"), T4("ResNet-34 B")], PASS, evidence_type="inferred", reasoning="Table 4 top-5 err.: ResNet-152 4.49 < ResNet-34 B 5.71",
       qualifiers={"metric": "top-5 err.", "dataset": "ImageNet validation set"}),
     A("r05", "The 34-layer plain net still achieving competitive accuracy suggests that the solver works to some extent.", "solver", "has_property", "works to some extent",
       ["p5-b85-s5"], PASS, modality="hedged"),

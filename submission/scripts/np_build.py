@@ -5,6 +5,16 @@ exportable nanopublications and fill result.json.
 Usage:
     python np_build.py --draft WORK/draft.json --out OUT [--parsed OUT/parsed/<stem>]
                        [--creator "agent name"] [--created 2026-01-01T00:00:00Z] [--no-previews]
+                       [--merge] [--allow-shrink]
+
+Safety (v0.3): a draft that is not valid JSON, has no assertion list, or names no usable source never touches
+OUT/result.json (the error goes to OUT/build_error.json, exit code 2). One malformed assertion does not stop the
+build: it is listed in result.json.build_errors and the status becomes partial. A build that would replace a
+result holding N built records with fewer (e.g. the empty template) is refused (exit 3) unless --allow-shrink or
+--merge. Every build first copies the previous result.json to OUT/result.prev.json.
+--merge: the draft is merged onto the last successfully built draft (OUT/draft.built.json) by assertion id
+(same id replaces, new ids are appended, "delete": ["a3"] removes), fields / overrides are updated and
+unreported / conflicts / uncertainty unioned -- so a small draft with only the new or fixed assertions is enough.
 
 For every draft assertion it
   1. resolves each evidence item to the PDF: sentence id -> exact sentence; {page, quote} ->
@@ -21,6 +31,7 @@ For every draft assertion it
 Re-running with the same draft gives the same ids (content-derived).
 """
 import argparse
+import copy
 import difflib
 import json
 import os
@@ -32,6 +43,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import np_common as C  # noqa: E402
 import np_check  # noqa: E402
+import np_contract as K  # noqa: E402
 
 NP = "http://www.nanopub.org/nschema#"
 PROV = "http://www.w3.org/ns/prov#"
@@ -70,18 +82,30 @@ class Source:
         self.by_id = {s["id"]: s for s in self.sents}
         self.blocks = {b["id"]: b for b in self.doc.get("blocks", [])}
         mp = os.path.join(parsed_dir, "source_metadata.json")
-        self.pdf = (self.doc.get("meta") or {}).get("source_file")
-        if not self.pdf or not os.path.exists(self.pdf):
-            self.pdf = None
-        self.md = C.load_json(mp) if os.path.exists(mp) else (C.extract_metadata(self.pdf, self.doc) if self.pdf else {})
+        self.file = (self.doc.get("meta") or {}).get("source_file")
+        self.format = (self.doc.get("meta") or {}).get("format") or "pdf"
+        self.pdf = self.file if (self.file and os.path.exists(self.file) and self.file.lower().endswith(".pdf")) else None
+        if os.path.exists(mp):
+            self.md = C.load_json(mp)
+        elif self.pdf:
+            self.md = C.extract_metadata(self.pdf, self.doc)
+        elif self.file and os.path.exists(self.file):
+            import text_source
+            self.md = text_source.extract_metadata(self.file, self.doc)
+        else:
+            self.md = {}
         self.overrides_log = []
-        for k, v in (overrides or {}).items():
+        for k, v in (overrides or {}).items() if isinstance(overrides, dict) else []:
+            if k in ("pdf_sha256", "file_sha256"):
+                self.overrides_log.append({"field": k, "from": None, "to": None, "refused": "the file hash is computed, not overridable"})
+                continue
             val = v.get("value") if isinstance(v, dict) else v
             old = (self.md.get(k) or {}).get("value")
             self.md[k] = {"value": val, "source": {"kind": "agent_override", "reason": (v.get("reason") if isinstance(v, dict) else None),
                                                     "evidence": (v.get("evidence") if isinstance(v, dict) else None)},
                           "confidence": "medium", "previous_value": old}
             self.overrides_log.append({"field": k, "from": old, "to": val})
+        self.name = os.path.basename(parsed_dir)
         self.refs = {str(r.get("label")): r for r in self.doc.get("references", []) if r.get("label") is not None}
         self.ref_list = self.doc.get("references", [])
         self._fitz = None
@@ -357,8 +381,12 @@ def resolve_image(src, item, role):
 
 
 def resolve_item(src, item, default_role="support"):
+    if isinstance(item, (int, float)) and not isinstance(item, bool):
+        item = {"quote": str(item)}
     if isinstance(item, str):
-        item = {"sentence": item}
+        item = {"sentence": item} if re.match(r"p\d+-[bgm]\d+-s\d+$", item.strip()) else {"quote": item}
+    if not isinstance(item, dict):
+        raise ValueError(f"evidence item must be a sentence id, a quote or an object, got {type(item).__name__}")
     role = item.get("role", default_role)
     t = item.get("type")
     if t == "table_cell" or "table" in item and "row" in item:
@@ -367,7 +395,7 @@ def resolve_item(src, item, default_role="support"):
         r = resolve_image(src, item, role)
     else:
         r = resolve_text(src, item, role)
-    r["evidence_id"] = "ev-" + C.short_hash(src.md.get("pdf_sha256", {}).get("value"), r.get("page"), C.norm(r.get("quote") or ""), r.get("kind"), n=10)
+    r["evidence_id"] = "ev-" + C.short_hash(C.src_hash(src.md), r.get("page"), C.norm(r.get("quote") or ""), r.get("kind"), n=10)
     if item.get("note"):
         r["note"] = item["note"]
     return r
@@ -387,19 +415,23 @@ def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
     pred = a.get("predicate")
     pinfo = vocab["predicates"].get(pred, {})
     raw_q = a.get("qualifiers")
-    quals = {k: v for k, v in raw_q.items() if v not in (None, "", [])} if isinstance(raw_q, dict) else {}
+    quals = {str(k): v for k, v in raw_q.items() if v not in (None, "", [], {})} if isinstance(raw_q, dict) else {}
+    for k, v in list(quals.items()):
+        if isinstance(v, dict):
+            quals[k] = json.dumps(v, ensure_ascii=False, sort_keys=True)
     ev_raw = a.get("evidence") or []
     ev_items = ev_raw if isinstance(ev_raw, list) else [ev_raw]
     ctx_raw = a.get("context") or []
     ctx_items = ctx_raw if isinstance(ctx_raw, list) else [ctx_raw]
     ev = [resolve_item(src, e) for e in ev_items] + [resolve_item(src, e, "context") for e in ctx_items]
     md = src.md
-    sha = (md.get("pdf_sha256") or {}).get("value")
+    sha = C.src_hash(md)
     s, o = slot(a.get("subject")), slot(a.get("object"))
     dedup = "|".join([C.norm(s["label"]), pred or "", C.norm(o["label"]), C.num_core(str(quals.get("value", ""))) if quals.get("value") not in (None, "") else ""])
     np_id = "np-" + C.short_hash(sha, dedup, C.norm(a.get("text") or ""), a.get("scope") or "this_work", a.get("modality") or "asserted",
                                  a.get("evidence_type") or "direct", json.dumps([C.norm(e.get("quote") or "") for e in ev], ensure_ascii=False), n=12)
     cited = a.get("cited_reference")
+    cited = str(cited) if cited not in (None, "") else None
     cited_res = None
     if cited:
         cr = resolve_citations(src, cited if re.match(r"[\[(]", cited) else f"[{cited}]")
@@ -426,7 +458,9 @@ def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
         "derived_from": a.get("derived_from"),
         "evidence": ev,
         "provenance": {
-            "source": {k: md.get(k) for k in ("title", "authors", "year", "venue", "doi", "arxiv_id", "version", "arxiv_date", "pdf_sha256", "page_count", "file_name") if md.get(k) is not None},
+            "source": {k: md.get(k) for k in ("title", "authors", "year", "venue", "doi", "arxiv_id", "version", "arxiv_date", "pdf_sha256",
+                                              "file_sha256", "source_format", "material_role", "page_count", "file_name") if md.get(k) is not None},
+            "source_name": getattr(src, "name", None),
             "source_iri": C.source_iri(md),
             "evidence_locations": [{"evidence_id": e["evidence_id"], "page": e.get("page"), "block_id": e.get("block_id"),
                                     "sentence_id": e.get("sentence_id"), "bbox": e.get("bbox")} for e in ev],
@@ -442,8 +476,13 @@ def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
 
 
 # ------------------------------------------------------------------ RDF
+_IRI_BAD = re.compile(r'[\x00-\x20<>"{}|^`\\]')
+
+
 def iri(x):
-    return ("iri", x)
+    """IRIREF-safe: characters N-Quads/TriG forbid in IRIs are percent-encoded."""
+    x = str(x)
+    return ("iri", _IRI_BAD.sub(lambda m: "".join("%%%02X" % b for b in m.group(0).encode("utf-8")), x))
 
 
 def lit(v, dt=None, lang=None):
@@ -470,7 +509,7 @@ def to_quads(rec, vocab):
     base = rec["uri"]
     sub = base + "#"
     H, A, P, I = sub + "Head", sub + "assertion", sub + "provenance", sub + "pubinfo"
-    sha = ((rec["provenance"]["source"].get("pdf_sha256") or {}).get("value")) or "unknown"
+    sha = C.src_hash(rec["provenance"]["source"]) or "unknown"
     ent = TEMP + "entity/" + sha[:12] + "/"
     q = []
     add = lambda s, p, o, g: q.append((iri(s), iri(p), o, iri(g)))
@@ -534,7 +573,7 @@ def to_quads(rec, vocab):
         add(src_iri, DCT + "title", lit(val("title")), P)
     for nme in (val("authors") or []):
         add(src_iri, DCT + "creator", lit(nme), P)
-    if val("year"):
+    if val("year") and re.fullmatch(r"\d{4}", str(val("year"))):
         add(src_iri, DCT + "issued", lit(val("year"), XSD + "gYear"), P)
     if val("doi"):
         add(src_iri, DCT + "identifier", lit("doi:" + val("doi")), P)
@@ -543,6 +582,8 @@ def to_quads(rec, vocab):
     if val("version"):
         add(src_iri, T + "version", lit(val("version")), P)
     add(src_iri, T + "sha256", lit(sha), P)
+    if val("source_format") and val("source_format") != "pdf":
+        add(src_iri, DCT + "format", lit(val("source_format")), P)
     add(base, DCT + "created", lit(rec["pubinfo"]["created"], XSD + "dateTime"), I)
     add(base, DCT + "creator", lit(rec["pubinfo"]["creator"]), I)
     add(base, RDFS + "label", lit("nanopub: " + (a["text"] or "")[:120]), I)
@@ -552,7 +593,8 @@ def to_quads(rec, vocab):
 
 
 def esc(s):
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+    s = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t")
+    return re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f\ud800-\udfff]", lambda m: "\\u%04X" % ord(m.group(0)), s)
 
 
 def term_nt(t):
@@ -606,7 +648,8 @@ def jsonld(all_quads):
     return [{"@id": g, "@graph": list(nodes.values())} for g, nodes in graphs.items()]
 
 
-NQ_RE = re.compile(r'^(<[^>]*>)\s+(<[^>]*>)\s+(<[^>]*>|"(?:[^"\\]|\\.)*"(?:\^\^<[^>]*>|@[A-Za-z\-]+)?)\s+(<[^>]*>)\s+\.$')
+_IRIREF = r'<[^\x00-\x20<>"{}|^`\\]*>'
+NQ_RE = re.compile(r'^(' + _IRIREF + r') (' + _IRIREF + r') (' + _IRIREF + r'|"(?:[^"\\\n\r]|\\[tbnrf"\'\\]|\\u[0-9A-Fa-f]{4}|\\U[0-9A-Fa-f]{8})*"(?:\^\^' + _IRIREF + r'|@[A-Za-z]+(?:-[A-Za-z0-9]+)*)?) (' + _IRIREF + r') \.$')
 
 
 def roundtrip(nq_text, jl, n_quads, trig_text):
@@ -723,10 +766,124 @@ def flat_evidence(records):
     return out
 
 
-def provenance_view(src):
-    return {"source_iri": C.source_iri(src.md),
+def provenance_view(src, others=()):
+    extra = [{"source_name": o.name, "source_iri": C.source_iri(o.md), **{k: v.get("value") for k, v in o.md.items() if isinstance(v, dict)}}
+             for o in others if o is not src]
+    out = provenance_view_one(src)
+    if extra:
+        out["additional_sources"] = extra
+    return out
+
+
+def provenance_view_one(src):
+    return {"source_iri": C.source_iri(src.md), "source_name": getattr(src, "name", None),
             **{k: v.get("value") for k, v in src.md.items() if isinstance(v, dict)},
             "field_sources": {k: {kk: vv for kk, vv in v.items() if kk != "value"} for k, v in src.md.items() if isinstance(v, dict)}}
+
+
+DT_RE = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$")
+
+
+def now_iso():
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+RESERVED_FIELDS = {"case_id", "sources", "field_status", "field_evidence", "field_problems", "output_contract_spec",
+                   "run_status", "change_log", "status_reason", "build_errors", "exports", "export_roundtrip",
+                   "quality_summary", "source_metadata"}
+_KIND_TYPES = {
+    "nanopublications": {"array"}, "assertions": {"array"}, "evidence": {"array"},
+    "relations": {"array"}, "unreported": {"array"}, "conflicts": {"array"}, "uncertainty": {"array"},
+    "provenance": {"object"}, "quality": {"object"}, "summary": {"object"},
+    "trig": {"string"}, "nquads": {"string"}, "jsonld": {"string"}, "review": {"string"}, "status": {"string"},
+}
+
+
+def _write_text_atomic(path, text):
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    os.replace(tmp, path)
+
+
+def refuse(out, msg, code=2, **extra):
+    """Stop without touching result.json; leave the reason in OUT/build_error.json."""
+    info = {"status": "build_refused", "error": msg, "result_json": "unchanged", "tool": C.TOOL, "at": now_iso(), **extra}
+    try:
+        C.dump_json(info, os.path.join(out, "build_error.json"))
+    except Exception:
+        pass
+    print(json.dumps(info, ensure_ascii=False, indent=1))
+    sys.exit(code)
+
+
+def load_draft(path, out):
+    try:
+        draft = C.load_json(path)
+    except FileNotFoundError:
+        refuse(out, f"draft not found: {path}")
+    except json.JSONDecodeError as e:
+        refuse(out, f"draft is not valid JSON: {e.msg} (line {e.lineno}, column {e.colno})",
+               hint="fix the JSON syntax and re-run; nothing was overwritten")
+    except (OSError, UnicodeDecodeError) as e:
+        refuse(out, f"draft unreadable: {e}")
+    if not isinstance(draft, dict):
+        refuse(out, f"draft top level must be an object, got {type(draft).__name__}")
+    if "assertions" in draft and not isinstance(draft["assertions"], list):
+        refuse(out, f"draft.assertions must be a list, got {type(draft['assertions']).__name__}")
+    if "fields" in draft and not isinstance(draft["fields"], dict):
+        refuse(a.out, f"draft.fields must be an object mapping contract field -> spec, got {type(draft['fields']).__name__}")
+    for rk in draft.get("fields") or {}:
+        if rk in RESERVED_FIELDS:
+            refuse(out, f"draft.fields cannot overwrite reserved runtime key {rk!r}")
+    draft.setdefault("assertions", [])
+    return draft
+
+
+def _union(a, b):
+    out = list(a or [])
+    for x in b or []:
+        if x not in out:
+            out.append(x)
+    return out
+
+
+def merge_drafts(old, new):
+    """New assertions replace old ones with the same id, others are appended; 'delete' removes ids."""
+    m = copy.deepcopy(old)
+    delete = {str(x) for x in (new.get("delete") or [])}
+    new_list = [x for x in new.get("assertions") or []]
+    new_by = {x.get("id"): x for x in new_list if isinstance(x, dict) and x.get("id")}
+    used, merged = set(), []
+    for x in old.get("assertions") or []:
+        xid = x.get("id") if isinstance(x, dict) else None
+        if xid in delete:
+            continue
+        if xid in new_by:
+            merged.append(new_by[xid])
+            used.add(xid)
+        else:
+            merged.append(x)
+    for x in new_list:
+        xid = x.get("id") if isinstance(x, dict) else None
+        if xid not in used and xid not in delete:
+            merged.append(x)
+    m["assertions"] = merged
+    for k in ("fields", "source_overrides"):
+        m[k] = {**(old.get(k) or {}), **(new.get(k) or {})}
+    for k in ("unreported", "conflicts", "uncertainty"):
+        m[k] = _union(old.get(k), new.get(k))
+    for k, v in new.items():
+        if k not in ("assertions", "fields", "source_overrides", "unreported", "conflicts", "uncertainty", "delete"):
+            m[k] = v
+    return m
+
+
+def built_count(res):
+    for c in reversed((res or {}).get("change_log") or []):
+        if isinstance(c, dict) and c.get("step") == "np_build":
+            return int(c.get("n_assertions") or 0)
+    return 0
 
 
 def main():
@@ -734,43 +891,92 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--draft", default="/app/work/draft.json")
     ap.add_argument("--out", default="/app/output")
-    ap.add_argument("--parsed", default=None, help="parsed dir (default: OUT/parsed/<draft.source or the only one>)")
+    ap.add_argument("--parsed", default=None, help="parsed dir (default: OUT/parsed/<draft.source>, else the primary material)")
     ap.add_argument("--creator", default=os.environ.get("NP_CREATOR", "LLM agent with nanopub-evidence-builder"))
-    ap.add_argument("--created", default=None, help="fixed timestamp for reproducible output")
+    ap.add_argument("--created", default=None, help="fixed timestamp for reproducible output (xsd:dateTime)")
     ap.add_argument("--no-previews", action="store_true")
+    ap.add_argument("--merge", action="store_true", help="merge this draft onto OUT/draft.built.json by assertion id")
+    ap.add_argument("--allow-shrink", action="store_true", help="allow replacing a built result with far fewer / zero records")
     a = ap.parse_args()
     t0 = time.time()
-    draft = C.load_json(a.draft)
+    os.makedirs(a.out, exist_ok=True)
+    draft = load_draft(a.draft, a.out)
+    built_path = os.path.join(a.out, "draft.built.json")
+    merged_from = None
+    if a.merge and os.path.exists(built_path):
+        try:
+            draft = merge_drafts(C.load_json(built_path), draft)
+            merged_from = built_path
+        except Exception as e:
+            refuse(a.out, f"--merge: cannot read {built_path}: {e}")
     vocab = C.load_vocab()
-    created = a.created or os.environ.get("NP_CREATED") or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    notes = []
+    created = a.created or os.environ.get("NP_CREATED") or now_iso()
+    if not DT_RE.match(str(created)):
+        notes.append({"issue": f"--created {created!r} is not an xsd:dateTime; current time used"})
+        created = now_iso()
+    rp = os.path.join(a.out, "result.json")
+    prev = None
+    if os.path.exists(rp):
+        try:
+            prev = C.load_json(rp)
+        except Exception as e:
+            notes.append({"issue": f"previous result.json unreadable ({e}); it was kept as result.corrupt.json"})
+            try:
+                import shutil
+                shutil.copy(rp, os.path.join(a.out, "result.corrupt.json"))
+            except Exception:
+                pass
     dirs = find_parsed_dirs(a.out)
     pdir = a.parsed
     if not pdir:
         want = draft.get("source")
-        pdir = next((d for d in dirs if os.path.basename(d) == want), None) or (dirs[0] if len(dirs) == 1 else None)
+        pdir = next((d for d in dirs if os.path.basename(d) == want), None)
+        if pdir is None:
+            order = [s.get("parsed_dir") for s in (prev or {}).get("sources") or [] if s.get("parse_status") != "failed"]
+            pdir = next((d for d in order if d and os.path.exists(os.path.join(d, "doc.json"))), None) or (dirs[0] if len(dirs) == 1 else None)
+            if pdir and want:
+                notes.append({"issue": f"draft.source {want!r} is not a parsed source; used {os.path.basename(pdir)} (primary)"})
     if not pdir:
-        sys.exit(f"cannot choose a parsed dir; pass --parsed (found {dirs})")
-    src = Source(pdir, draft.get("source_overrides"))
-    # group assertions by source if several PDFs are used
+        refuse(a.out, f"cannot choose a parsed source; set draft.source to one of {[os.path.basename(d) for d in dirs]} or pass --parsed")
+    try:
+        src = Source(pdir, draft.get("source_overrides"))
+    except Exception as e:
+        refuse(a.out, f"cannot load parsed source {pdir}: {type(e).__name__}: {e}", hint="re-run np_init.py")
     srcs = {os.path.basename(pdir): src}
     for d in dirs:
         nm = os.path.basename(d)
         if nm not in srcs:
-            srcs[nm] = Source(d, draft.get("source_overrides"))
-    records = []
+            try:
+                srcs[nm] = Source(d, draft.get("source_overrides"))
+            except Exception as e:
+                notes.append({"issue": f"parsed source {nm} unreadable: {e}"})
+    records, build_errors = [], []
     for i, asr in enumerate(draft.get("assertions", []), 1):
-        s = src
-        if asr.get("source") and asr["source"] != os.path.basename(pdir):
-            sd = os.path.join(a.out, "parsed", asr["source"])
-            if asr["source"] not in srcs and os.path.exists(os.path.join(sd, "doc.json")):
-                srcs[asr["source"]] = Source(sd, draft.get("source_overrides"))
-            s = srcs.get(asr["source"], src)
-        elif not asr.get("source") and len(srcs) > 1:
-            ev_list = asr.get("evidence") if isinstance(asr.get("evidence"), list) else ([asr.get("evidence")] if asr.get("evidence") else [])
-            sid = next((e if isinstance(e, str) else e.get("sentence") or e.get("sentence_id") for e in ev_list if isinstance(e, (str, dict))), None)
-            if isinstance(sid, str) and sid not in s.by_id:
-                s = next((cand for cand in srcs.values() if sid in cand.by_id), s)
-        records.append(build_record(s, asr, i, vocab, a.creator, created, draft.get("unreported") or []))
+        aid = asr.get("id") if isinstance(asr, dict) else None
+        if not isinstance(asr, dict):
+            build_errors.append({"index": i, "id": None, "error": f"assertion must be an object, got {type(asr).__name__}"})
+            continue
+        try:
+            s = src
+            if asr.get("source") and asr["source"] != os.path.basename(pdir):
+                s = srcs.get(asr["source"])
+                if s is None:
+                    raise ValueError(f"source {asr['source']!r} is not a parsed source ({sorted(srcs)})")
+            elif not asr.get("source") and len(srcs) > 1:
+                ev_list = asr.get("evidence") if isinstance(asr.get("evidence"), list) else ([asr.get("evidence")] if asr.get("evidence") else [])
+                sid = next((e if isinstance(e, str) else e.get("sentence") or e.get("sentence_id") for e in ev_list if isinstance(e, (str, dict))), None)
+                if isinstance(sid, str) and sid not in s.by_id:
+                    s = next((cand for cand in srcs.values() if sid in cand.by_id), s)
+            records.append(build_record(s, asr, i, vocab, a.creator, created, draft.get("unreported") or []))
+        except Exception as e:
+            build_errors.append({"index": i, "id": aid, "error": f"{type(e).__name__}: {e}",
+                                 "fix_hint": "check this assertion's evidence / qualifiers shape against SKILL.md"})
+    prev_n = built_count(prev)
+    if prev_n and not a.allow_shrink and (not records or (build_errors and len(records) < prev_n / 2)):
+        refuse(a.out, f"refusing to replace a result with {prev_n} built records by one with {len(records)} "
+                      f"({len(build_errors)} assertion(s) could not be built)", code=3,
+               build_errors=build_errors[:20], hint="fix the draft, use --merge for a partial draft, or --allow-shrink if intended")
     seen = {}
     for r in records:  # identical content -> same id; keep URIs unique in the export (R24 reports the duplicate)
         n = seen.get(r["np_id"], 0) + 1
@@ -784,98 +990,174 @@ def main():
                                                       json.dumps([(e.get("quote"), e.get("page")) for e in r["evidence"]], ensure_ascii=False), n=64)
     if not a.no_previews:
         for s in srcs.values():
-            recs = [r for r in records if (r["provenance"]["source"].get("pdf_sha256") or {}).get("value") == (s.md.get("pdf_sha256") or {}).get("value")]
-            render_crops(s, recs, os.path.join(a.out, "evidence_crops"))
-            s._fitz = None
-            render_previews(s, recs, os.path.join(a.out, "evidence_previews"))
+            recs = [r for r in records if C.src_hash(r["provenance"]["source"]) == C.src_hash(s.md)]
+            try:
+                render_crops(s, recs, os.path.join(a.out, "evidence_crops"))
+                s._fitz = None
+                render_previews(s, recs, os.path.join(a.out, "evidence_previews"))
+            except Exception as e:  # previews are a convenience, never a reason to lose the result
+                notes.append({"issue": f"preview rendering failed for {s.name}: {e}"})
     all_q = []
     for r in records:
         all_q += to_quads(r, vocab)
     nq, tg, jl = nquads(all_q), trig(all_q), jsonld(all_q)
-    with open(os.path.join(a.out, "nanopubs.nq"), "w", encoding="utf-8") as fh:
-        fh.write(nq)
-    with open(os.path.join(a.out, "nanopubs.trig"), "w", encoding="utf-8") as fh:
-        fh.write(tg)
-    C.dump_json(jl, os.path.join(a.out, "nanopubs.jsonld"))
     rt = roundtrip(nq, jl, len(all_q), tg)
     qrep["export_roundtrip"] = rt
-    C.dump_json({"nanopublications": records, "vocabulary": "vocab/relations.json", "tool": C.TOOL}, os.path.join(a.out, "nanopubs.json"))
-    C.dump_json(qrep, os.path.join(a.out, "quality_report.json"))
-    # ---- result.json
-    rp = os.path.join(a.out, "result.json")
-    res = C.load_json(rp) if os.path.exists(rp) else {"case_id": draft.get("case_id")}
-    fields = draft.get("fields") or {}
-    res.setdefault("field_status", {})
-    res["field_evidence"] = res.get("field_evidence") or {}
+    # ---- result.json (build and validate in memory before writing any output files)
+    res = copy.deepcopy(prev) if isinstance(prev, dict) else {}
+    if "case_id" not in res:
+        res["case_id"] = draft.get("case_id")
+    spec = res.get("output_contract_spec") or {}
+    spec_fields = {f["name"]: f for f in spec.get("fields") or [] if isinstance(f, dict) and f.get("name")}
+    fields = dict(draft.get("fields") or {})
+    auto = []
+    for name, f in spec_fields.items():  # contract fields the draft did not map: use the suggested view if compatible
+        sk = f.get("suggested_kind")
+        ft = f.get("type")
+        ft_set = set(ft) if isinstance(ft, list) else ({ft} if ft else set())
+        if name != "case_id" and name not in fields and sk not in (None, "agent_value"):
+            if not ft_set or (ft_set & _KIND_TYPES.get(sk, set())):
+                fields[name] = {"kind": sk}
+                auto.append(name)
+    res["field_status"] = {f: None for f in spec_fields if f != "case_id"} if spec_fields else (dict(res.get("field_status")) if isinstance(res.get("field_status"), dict) else {})
+    res["field_evidence"] = {}
+    res["field_problems"] = {}
     unrep = list(draft.get("unreported") or [])
-    pre_conflicts = (res.get("conflicts") or []) + [x for x in (draft.get("conflicts") or []) if x not in (res.get("conflicts") or [])]
-    if src.overrides_log:
-        pre_conflicts = pre_conflicts + [{"type": "metadata_override", **o} for o in src.overrides_log if o["from"] not in (None, o["to"])]
-    pre_uncertainty = (res.get("uncertainty") or []) + [x for x in (draft.get("uncertainty") or []) if x not in (res.get("uncertainty") or [])]
+    keep = lambda k: [x for x in (res.get(k) or []) if isinstance(x, dict) and x.get("origin") == "np_init"]
+    conflicts = _union(keep("conflicts"), draft.get("conflicts"))
+    conflicts += [{"type": "metadata_override", **o} for s in srcs.values() for o in s.overrides_log if o.get("from") not in (None, o.get("to"))]
+    uncertainty = _union(keep("uncertainty"), draft.get("uncertainty")) + notes
+    uncertainty += [{"assertion": e["id"], "index": e["index"], "issue": "assertion could not be built: " + e["error"]} for e in build_errors]
     views = {"nanopublications": records, "assertions": [flat_assertion(r) for r in records],
-             "evidence": flat_evidence(records), "provenance": provenance_view(src), "quality": qrep,
+             "evidence": flat_evidence(records), "provenance": provenance_view(src, list(srcs.values())), "quality": qrep,
              "relations": [{"assertion_id": r["assertion"]["id"], "subject": r["assertion"]["subject"]["label"],
                             "predicate": r["assertion"]["predicate"]["id"], "object": r["assertion"]["object"]["label"],
                             "qualifiers": r["assertion"]["qualifiers"]} for r in records],
              "trig": "nanopubs.trig", "nquads": "nanopubs.nq", "jsonld": "nanopubs.jsonld",
-             "review": "review.md", "unreported": unrep, "conflicts": pre_conflicts, "uncertainty": pre_uncertainty,
+             "review": "review.md", "unreported": unrep, "conflicts": conflicts, "uncertainty": uncertainty,
              "summary": {"n_assertions": len(records), "quality": qrep["summary"], "export_roundtrip_ok": rt["ok"],
                          "source_iri": C.source_iri(src.md)},
              "status": "pending"}
     by_aid = {r["assertion"]["id"]: r for r in records}
-    for f, spec in fields.items():
-        spec = spec if isinstance(spec, dict) else {"value": spec}
-        kind = spec.get("kind", "agent_value")
-        if "value" in spec:
-            res[f] = spec["value"]
-            ids = spec.get("from") or []
+    for f, fs in fields.items():
+        fs = fs if isinstance(fs, dict) else {"value": fs}
+        kind = fs.get("kind", "agent_value")
+        if "value" in fs:
+            res[f] = copy.deepcopy(fs["value"])
+            ids = fs.get("from") or []
+            ids = ids if isinstance(ids, list) else [ids]
             res["field_evidence"][f] = [e for i in ids if i in by_aid for e in flat_evidence([by_aid[i]])]
             bad = [i for i in ids if i not in by_aid]
-            ok = res[f] not in (None, "", []) and (ids and not bad and all(by_aid[i]["quality"]["verdict"] != "fail" for i in ids))
-            res["field_status"][f] = "supported" if ok else ("unreported" if res[f] in (None, "", []) else "needs_review")
+            ok = not K.is_empty(res[f]) and (ids and not bad and all(by_aid[i]["quality"]["verdict"] != "fail" for i in ids))
+            res["field_status"][f] = "supported" if ok else ("unreported" if K.is_empty(res[f]) else "needs_review")
             if bad:
-                res.setdefault("uncertainty", []).append({"field": f, "issue": f"'from' names unknown assertion ids {bad}"})
+                uncertainty.append({"field": f, "issue": f"'from' names unknown assertion ids {bad}"})
         elif kind in views:
-            sel = spec.get("filter")
-            v = views[kind]
+            sel = fs.get("filter")
+            v = copy.deepcopy(views[kind]) if kind != "nanopublications" else views[kind]
             if sel and isinstance(v, list):
                 v = [x for x in v if (x.get("assertion_id") or (x.get("assertion") or {}).get("id")) in sel]
+            ren = fs.get("rename")
+            if isinstance(ren, dict) and isinstance(v, list):
+                v = [{ren.get(k, k): val for k, val in x.items()} if isinstance(x, dict) else x for x in v]
             res[f] = v
-            res["field_status"][f] = "generated" if (v not in (None, "") or kind in ("unreported", "conflicts", "uncertainty")) else "unreported"
+            res["field_status"][f] = ("generated" if (not K.is_empty(v) or kind in ("unreported", "conflicts", "uncertainty")) else "unreported") \
+                + (" (auto: contract field not in draft.fields)" if f in auto else "")
         else:
             res["field_status"][f] = "unreported"
             if res.get(f) is None and not any(u.get("field") == f for u in unrep if isinstance(u, dict)):
+                unrep.append({"field": f, "reason": f"agent did not fill this field (unknown kind {kind!r})" if kind != "agent_value" else "agent did not fill this field"})
+    for f in res["field_status"]:
+        if f not in fields and res["field_status"][f] is None:
+            res["field_status"][f] = "unreported"
+            res[f] = None
+            if not any(isinstance(u, dict) and u.get("field") == f for u in unrep):
                 unrep.append({"field": f, "reason": "agent did not fill this field"})
     res["nanopublications"] = res.get("nanopublications") if "nanopublications" in fields else [flat_assertion(r) for r in records]
-    res["source_metadata"] = provenance_view(src)
+    res["source_metadata"] = provenance_view(src, list(srcs.values()))
     res["quality_summary"] = qrep["summary"]
     res["export_roundtrip"] = rt
     res["exports"] = {"nanopubs_json": "nanopubs.json", "trig": "nanopubs.trig", "nquads": "nanopubs.nq", "jsonld": "nanopubs.jsonld",
-                      "quality_report": "quality_report.json", "review": "review.md", "previews_dir": "evidence_previews", "crops_dir": "evidence_crops"}
+                      "quality_report": "quality_report.json", "review": "review.md", "previews_dir": "evidence_previews", "crops_dir": "evidence_crops",
+                      "effective_draft": "draft.built.json"}
     res["unreported"] = unrep
-    for k in ("conflicts", "uncertainty"):
-        res[k] = (res.get(k) or []) + [x for x in (draft.get(k) or []) if x not in (res.get(k) or [])]
-    if src.overrides_log:
-        res["conflicts"] += [{"type": "metadata_override", **o} for o in src.overrides_log if o["from"] not in (None, o["to"])]
+    res["conflicts"] = conflicts
+    res["uncertainty"] = uncertainty
+    res["build_errors"] = build_errors
     n_fail = qrep["summary"]["fail"]
-    missing = [f for f, st in res["field_status"].items() if st in (None, "unreported")]
+    required = set(spec.get("required") or []) if spec_fields else set(res["field_status"])
+    for f, fsp in spec_fields.items():  # type / nested-schema check against the contract (lossless coercion only)
+        if f == "case_id" or f not in res or res["field_status"].get(f) in (None, "unreported"):
+            continue
+        sch = fsp.get("schema") if isinstance(fsp.get("schema"), dict) else ({"type": fsp["type"]} if fsp.get("type") else None)
+        if not sch or not (sch.get("type") or sch.get("properties") or sch.get("items")):
+            continue
+        val, probs, cnotes = K.validate(copy.deepcopy(res[f]) if f != "nanopublications" or not isinstance(res[f], list) else res[f], sch, f)
+        if cnotes and not probs:
+            res[f] = val
+            res.setdefault("change_log", []).append({"step": "contract_coercion", "field": f, "notes": cnotes[:10], "at": now_iso()})
+        if probs:
+            res["field_problems"][f] = probs[:30]
+            res["field_status"][f] = "schema_mismatch"
+    if "case_id" in spec_fields:
+        cs = spec_fields["case_id"]
+        cid, probs, _ = K.validate(res.get("case_id"), cs.get("schema") or ({"type": cs["type"]} if cs.get("type") else {}), "case_id")
+        if probs and res.get("case_id") is not None:
+            res["field_problems"]["case_id"] = probs
+        elif res.get("case_id") is not None:
+            res["case_id"] = cid
+    unfilled_req = [f for f, st in res["field_status"].items() if f in required and st in (None, "unreported", "schema_mismatch")]
+    needs_review_req = [f for f, st in res["field_status"].items() if f in required and st == "needs_review"]
+    unfilled_opt = [f for f, st in res["field_status"].items() if f not in required and st in (None, "unreported", "schema_mismatch")]
     image_only = [r["assertion"]["id"] for r in records if any(i["rule"] == "R26" for i in r["quality"]["issues"])]
+    unread_sources = [
+        {"stem": s.get("stem"), "unresolved_pages": s.get("unresolved_pages") or [], "pages_not_parsed": s.get("pages_not_parsed") or []}
+        for s in (res.get("sources") or [])
+        if s.get("unresolved_pages") or s.get("pages_not_parsed")
+    ]
+    contract_errors = spec.get("errors") or []
     if not records:
         res["status"] = "partial" if res.get("status") != "failed" else "failed"
     else:
-        res["status"] = "success" if (n_fail == 0 and not missing and rt["ok"] and not image_only) else "partial"
-    for f, spec in fields.items():
-        if isinstance(spec, dict) and spec.get("kind") == "status" and "value" not in spec:
+        res["status"] = "success" if (n_fail == 0 and not unfilled_req and not needs_review_req and rt["ok"]
+                                      and not image_only and not build_errors and not unread_sources and not contract_errors) else "partial"
+    for f, fs in fields.items():
+        if isinstance(fs, dict) and fs.get("kind") == "status" and "value" not in fs:
             res[f] = res["status"]
-    res["status_reason"] = {"failing_records": n_fail, "unfilled_fields": missing, "export_ok": rt["ok"],
-                            "image_read_records_need_human_review": image_only}
-    res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL, "draft": a.draft, "n_assertions": len(records),
-                                              "verdicts": {k: qrep["summary"][k] for k in ("pass", "warn", "fail")},
-                                              "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
+    res["status_reason"] = {"failing_records": n_fail, "unfilled_fields": unfilled_req, "needs_review_fields": needs_review_req,
+                            "unfilled_optional_fields": unfilled_opt,
+                            "schema_problems": sorted(res["field_problems"]), "export_ok": rt["ok"],
+                            "image_read_records_need_human_review": image_only, "unread_source_pages": unread_sources,
+                            "contract_errors": contract_errors, "assertions_not_built": [e["id"] or e["index"] for e in build_errors]}
+    if not res["field_problems"]:
+        res.pop("field_problems")
+    res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL, "draft": a.draft, "merged_onto": merged_from,
+                                              "n_assertions": len(records), "n_build_errors": len(build_errors),
+                                              "auto_filled_fields": auto,
+                                              "verdicts": {k: qrep["summary"][k] for k in ("pass", "warn", "fail")}, "at": now_iso()})
+    nanopubs_payload = {"nanopublications": records, "vocabulary": "vocab/relations.json", "tool": C.TOOL}
+    try:
+        json.dumps(res, ensure_ascii=False, allow_nan=False)
+        json.dumps(jl, ensure_ascii=False, allow_nan=False)
+        json.dumps(nanopubs_payload, ensure_ascii=False, allow_nan=False)
+    except Exception as e:
+        refuse(a.out, f"output contains non-JSON-serializable values: {e}")
+    if prev is not None:
+        C.dump_json(prev, os.path.join(a.out, "result.prev.json"))
+    _write_text_atomic(os.path.join(a.out, "nanopubs.nq"), nq)
+    _write_text_atomic(os.path.join(a.out, "nanopubs.trig"), tg)
+    C.dump_json(jl, os.path.join(a.out, "nanopubs.jsonld"))
+    C.dump_json(nanopubs_payload, os.path.join(a.out, "nanopubs.json"))
+    C.dump_json(qrep, os.path.join(a.out, "quality_report.json"))
     C.dump_json(res, rp)
+    C.dump_json(draft, built_path)
+    be = os.path.join(a.out, "build_error.json")
+    if os.path.exists(be):
+        os.remove(be)
     write_review(os.path.join(a.out, "review.md"), records, src, qrep)
     print(json.dumps({"n_assertions": len(records), "summary": qrep["summary"], "export_roundtrip": rt, "status": res["status"],
-                      "status_reason": res["status_reason"],
+                      "status_reason": res["status_reason"], "build_errors": build_errors, "auto_filled_fields": auto,
+                      "field_problems": res.get("field_problems"),
                       "records": [{"id": r["assertion"]["id"], "verdict": r["quality"]["verdict"], "confidence": r["confidence"]["score"],
                                    "issues": [f"{i['rule']} {i['severity']}: {i['message']}" + (f" [{i['trigger']}]" if i.get("trigger") else "")
                                               for i in r["quality"]["issues"]],
@@ -887,7 +1169,7 @@ def main():
 def write_review(path, records, src, qrep):
     md = src.md
     L = [f"# Nanopublication review — {(md.get('title') or {}).get('value')}", "",
-         f"Source: {C.source_iri(md)} · SHA-256 `{(md.get('pdf_sha256') or {}).get('value')}` · tool {C.TOOL}", "",
+         f"Source: {C.source_iri(md)} · SHA-256 `{C.src_hash(md)}` · tool {C.TOOL}", "",
          f"Verdicts: pass {qrep['summary']['pass']} · warn {qrep['summary']['warn']} · fail {qrep['summary']['fail']} · export round-trip ok: {qrep['export_roundtrip']['ok']}", "",
          "| id | assertion | S · P · O | evidence (page, location, match) | verdict | conf. | issues |", "|---|---|---|---|---|---|---|"]
     for r in records:

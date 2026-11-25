@@ -94,7 +94,7 @@
     }
    ],
    "evidence_type": "inferred",
-   "reasoning": "Table 4 top-5 err.: ResNet-152 4.49 < ResNet-34 B 7.40",
+   "reasoning": "Table 4 top-5 err.: ResNet-152 4.49 < ResNet-34 B 5.71",
    "qualifiers": {
     "metric": "top-5 err.",
     "dataset": "ImageNet validation set"

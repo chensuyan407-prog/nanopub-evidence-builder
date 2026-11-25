@@ -224,9 +224,10 @@
   ],
   "verdict": "warn",
   "rules_found": [
+   "R16",
    "R20"
   ],
-  "confidence": 0.8,
+  "confidence": 0.7,
   "evidence_match": [
    "exact_sentence"
   ],

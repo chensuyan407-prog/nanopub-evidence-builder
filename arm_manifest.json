@@ -19,8 +19,8 @@
  "execution": {
   "log_path": "execution/run.log",
   "exit_code": 0,
-  "ran_at": "2026-11-25T06:49:26.531967Z",
-  "wall_time_s": 16.11,
+  "ran_at": "2026-11-25T15:27:48.043208Z",
+  "wall_time_s": 38.0,
   "ran_by": "agent",
   "artifacts": [
    {
@@ -28,14 +28,14 @@
     "path": "execution/results/metrics.json",
     "type": "metric",
     "format": "json",
-    "checksum_sha256": "1227b21c14db5f68bc7c21d444d76ba9355a2ef8be1068cbdc73685d03ce4205"
+    "checksum_sha256": "a0b935c6857e11862c8a614330853ee37effc9c09baff53cba35d59d082e2f0b"
    },
    {
     "id": "eval_rows",
     "path": "execution/results/eval_rows.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "b30dd18cc301aa1a8eed62f18db6a139a695068fc4fa35a803d2cdffb0e2b342"
+    "checksum_sha256": "cbbc75e3e0a14702ac49aae8a7dacb6d84d40ff3c38a8d83294373eab85032a3"
    },
    {
     "id": "metrics_at_freeze",
@@ -49,21 +49,21 @@
     "path": "execution/results/cases/resnet/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "6f75dc94e3c73d43ae42c16f6db14170bf4c7f9863cf91b2644598ebe57eab7f"
+    "checksum_sha256": "7dc45dbdb4fee3a012e5f800d5dd56a69a4252722ad979d4876d8a0cbbd8fc87"
    },
    {
     "id": "resnet_trig",
     "path": "execution/results/cases/resnet/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "8eec9b0073a71c4a7eeb80fea3b30db70dba26360a89b08de392ebf18573801c"
+    "checksum_sha256": "69a089339e9ef8979a263ff46cda186874f4c2f4d71a9311fa615106fe1f818b"
    },
    {
     "id": "resnet_review",
     "path": "execution/results/cases/resnet/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "58f93b716006a977ce20a70dc30ce92c11ec07156481a06251f67dc66f11891f"
+    "checksum_sha256": "d02e6dfe3f4a6b5530303f1eb36a63309ea75db3b0f80f876202075f5e8dc964"
    },
    {
     "id": "resnet_preview_page_001",
@@ -84,21 +84,21 @@
     "path": "execution/results/cases/attention/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "b085699093a10e78afae67ea458a41ef4c1c624a0b86a13a5158454d619f6572"
+    "checksum_sha256": "77b0d0d3d0c4cc6399a353c16021cd142a795fecd66f7ec1b0fb596a69774935"
    },
    {
     "id": "attention_trig",
     "path": "execution/results/cases/attention/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "58d62845cd36d828b1a00dcd4f566c8c08ec9cedb8505590d301824131f626d7"
+    "checksum_sha256": "390a0f5a4a009c9c146bbb411463a45557c860ff64ee651aef390413ea6c300c"
    },
    {
     "id": "attention_review",
     "path": "execution/results/cases/attention/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "f6b41d4c39e2234b7f4eaa2d1cc2bf11f77d8056bf1b79011baca990135ce5f5"
+    "checksum_sha256": "56e7fae935538dcb7d98ccdeca7e08739b6139e236890a2f7b5ea953a62f642a"
    },
    {
     "id": "attention_preview_page_002",
@@ -119,21 +119,21 @@
     "path": "execution/results/cases/bn/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "d03e185bb9077aea07cf0f473c0c57c252bcd080dbeccc45b1f452b44e6cbd8a"
+    "checksum_sha256": "e7a64b5c45138a293184938d57f4ac1f04501d8148402c86852856674b52d62b"
    },
    {
     "id": "bn_trig",
     "path": "execution/results/cases/bn/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "8582d1d1e3127fb53803a6b151f22fbcb4e03da1f4e59f9791e83c6c86c47a59"
+    "checksum_sha256": "2b66254da6639e318d2888625badba7555885fbe1abdb535cd7b60affe57c87d"
    },
    {
     "id": "bn_review",
     "path": "execution/results/cases/bn/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "c570e85a63d2ac27a435aff101417ff4527d0e26b8fe4c4101f4d6a014920990"
+    "checksum_sha256": "384a13bfc373321cfda185df504332fd62a666121cc25c9d51d275574b2b0cbd"
    },
    {
     "id": "bn_preview_page_001",
@@ -154,21 +154,21 @@
     "path": "execution/results/cases/kaplan_holdout/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "9908e462a1d592a1867ad3eb1dfe9ae26d2de2f791af9f104ff3ee8f5b529ddc"
+    "checksum_sha256": "1bf6ad7a31dbc2cacbdbf35feb8149814246c5ca41e7a0e64189026c7e0419dd"
    },
    {
     "id": "kaplan_holdout_trig",
     "path": "execution/results/cases/kaplan_holdout/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "d885a6710c8d0f1915ee2c43a8e29779d546f729a90493b937a9ed4e9b03e7eb"
+    "checksum_sha256": "201d126c6e6a14eeaf21165a735a193cc2819ec58cbd5b4aa3690d6a462b7a62"
    },
    {
     "id": "kaplan_holdout_review",
     "path": "execution/results/cases/kaplan_holdout/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "32905d4ec8cbee077a60493820629e06f23e5aaa8e3d36a6207995c9e03a26b0"
+    "checksum_sha256": "4f6be347686de17223c99dfd9adb559193c657833d8112089fafca235ef6f637"
    },
    {
     "id": "kaplan_holdout_preview_page_001",

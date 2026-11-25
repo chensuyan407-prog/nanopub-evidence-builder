@@ -129,10 +129,10 @@ def robustness(log):
             {"id": "v1", "text": "ResNet-152 achieves higher accuracy and reduced latency (He et al., 2015; ImageNet).",
              "subject": "ResNet-152", "predicate": "outperforms", "object": "shallower models",
              "evidence_type": "direct", "evidence": ["p1-b5-s6"]},
-            {"id": "v2", "text": "ResNet-152 lowers top-5 error by 2.91 percentage points relative to ResNet-34 B.",
+            {"id": "v2", "text": "ResNet-152 lowers top-5 error by 1.22 percentage points relative to ResNet-34 B.",
              "subject": "ResNet-152", "predicate": "lower_than", "object": "ResNet-34 B",
-             "qualifiers": {"value": "2.91", "unit": "percentage points"},
-             "evidence_type": "inferred", "reasoning": "Table 4 top-5 err.: 7.40 - 4.49 = 2.91",
+             "qualifiers": {"value": "1.22", "unit": "percentage points"},
+             "evidence_type": "inferred", "reasoning": "Table 4 top-5 err.: 5.71 - 4.49 = 1.22",
              "evidence": [{"type": "table_cell", "table": "Table 4", "row": {"method": "ResNet-152"}, "column": "top-5 err."},
                           {"type": "table_cell", "table": "Table 4", "row": {"method": "ResNet-34 B"}, "column": "top-5 err."}]},
         ],
@@ -169,6 +169,15 @@ def main():
             print(r.stderr)
             sys.exit(r.returncode)
         rob = robustness(log)
+        # v0.3.0 regression suite: rules, contract handling, materials, draft safety, text papers, strict export
+        rv = run([sys.executable, os.path.join(ROOT, "tests", "test_v03.py")], log)
+        last = (rv.stdout.strip().splitlines() or ["{}"])[-1]
+        try:
+            sv = json.loads(last)
+        except ValueError:
+            sv = {"parse_error": last[-300:]}
+        rob["v03_regression_suite"] = {"n_tests": sv.get("n_tests"), "passed": sv.get("passed"), "failed": sv.get("failed"),
+                                       "ok": rv.returncode == 0}
     with open(os.path.join(RES, "metrics.json"), encoding="utf-8") as fh:
         m = json.load(fh)
     m["robustness"] = rob

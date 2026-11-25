@@ -11,7 +11,7 @@ import os
 import re
 import unicodedata
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 TOOL = f"nanopub-evidence-builder {VERSION}"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(HERE)
@@ -39,9 +39,17 @@ def load_json(p):
 def dump_json(obj, p):
     os.makedirs(os.path.dirname(os.path.abspath(p)), exist_ok=True)
     tmp = p + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as fh:
-        json.dump(obj, fh, ensure_ascii=False, indent=1)
-    os.replace(tmp, p)
+    try:
+        with open(tmp, "w", encoding="utf-8") as fh:
+            json.dump(obj, fh, ensure_ascii=False, indent=1, allow_nan=False)
+        os.replace(tmp, p)
+    except Exception:
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+        raise
 
 
 def sha256_file(p):
@@ -161,7 +169,8 @@ NUM_RE = re.compile(r"(?<![\w.])[-+]?\d+(?:[.,]\d+)*(?:\s?%|\s?[x×]\b)?")
 HEDGE = ["may", "might", "could", "suggest", "suggests", "suggested", "likely", "possibly", "possible", "appear",
          "appears", "seem", "seems", "potentially", "hypothesize", "hypothesise", "presumably", "perhaps",
          "indicate", "indicates", "suggesting", "indicating", "suggestive", "unclear", "unknown", "tend to", "tends to", "we believe", "we conjecture", "conjecture", "plausibly",
-         "可能", "或许", "推测", "似乎", "提示", "倾向于"]
+         "probably", "speculate", "we speculate", "putative", "putatively", "preliminary",
+         "可能", "或许", "推测", "似乎", "提示", "倾向于", "或可", "有望", "大概", "疑似", "初步"]
 NEGATION = ["not", "no", "never", "none", "neither", "nor", "cannot", "can't", "fail", "fails", "failed",
             "without", "unable", "lack", "lacks", "n't", "absence", "不", "未", "没有", "无法", "并非"]
 UNIVERSAL = ["all", "always", "every", "any", "never", "universally", "entirely", "completely", "invariably",
@@ -225,6 +234,88 @@ def num_core(v):
         return ("%g" % f)
     except ValueError:
         return v
+
+
+# ---------------------------------------------------------------- magnitudes (6 billion == 60 亿 == 6x10^9)
+SCALE_WORDS = {"thousand": 1e3, "thousands": 1e3, "million": 1e6, "millions": 1e6, "billion": 1e9, "billions": 1e9,
+               "trillion": 1e12, "trillions": 1e12, "k": 1e3, "K": 1e3, "M": 1e6, "B": 1e9, "T": 1e12, "bn": 1e9, "mn": 1e6,
+               "千": 1e3, "万": 1e4, "十万": 1e5, "百万": 1e6, "千万": 1e7, "亿": 1e8, "十亿": 1e9, "百亿": 1e10, "千亿": 1e11, "万亿": 1e12}
+_SCALE_ALT = "|".join(sorted((re.escape(k) for k in SCALE_WORDS), key=len, reverse=True))
+MAG_RE = re.compile(r"(?<![\w.])(\d+(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?)\s*"
+                    r"(?:(?P<sc>" + _SCALE_ALT + r")(?![A-Za-z])|(?:[x×*·]\s*)?10\s*(?:\^|\*\*)\s*\{?(?P<e1>-?\d+)\}?|(?:[x×*·]\s*)10(?P<e2>[⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+)|[eE](?P<e3>[-+]?\d+)(?![\w.]))")
+_SUP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁻", "0123456789-")
+
+
+def magnitudes(text):
+    """Numbers with an explicit magnitude: [(raw, mantissa_str, value_float)].
+    '6 billion', '60亿', '1.28 million', '128万', '6x10^9', '6e9', '60M' (single capital letters only
+    when glued to the number: '60M', not '60 M')."""
+    out = []
+    t = norm(text, lower=False)
+    for m in MAG_RE.finditer(t):
+        mant = m.group(1).replace(",", "")
+        sc = m.group("sc")
+        if sc and len(sc) == 1 and sc.isascii() and sc.isalpha() and t[m.end(1):m.start("sc")].strip() == "" and m.start("sc") != m.end(1):
+            continue  # '60 M' (space + single letter) is too ambiguous
+        try:
+            v = float(mant)
+        except ValueError:
+            continue
+        if sc:
+            f = SCALE_WORDS[sc]
+        else:
+            e = m.group("e1") or (m.group("e2") or "").translate(_SUP) or m.group("e3")
+            try:
+                f = 10.0 ** int(e)
+            except (TypeError, ValueError):
+                continue
+        out.append((m.group(0).strip(), mant, v * f))
+    return out
+
+
+def plain_values(text):
+    """Every number in the text as float (no magnitude), for equivalence with magnitudes."""
+    out = []
+    for m in re.finditer(r"(?<![\w.])(\d+(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)", norm(text, lower=False)):
+        try:
+            out.append(float(m.group(1).replace(",", "")))
+        except ValueError:
+            pass
+    return out
+
+
+def same_magnitude(a_mant, a_val, ev_vals):
+    """True if a_val equals one of ev_vals, allowing the rounding implied by the mantissa's printed precision
+    ('1.28 million' matches 1,281,167; '6 billion' does not match 6 million)."""
+    dec = len(a_mant.split(".")[1]) if "." in a_mant else 0
+    try:
+        m = float(a_mant)
+    except ValueError:
+        return False
+    unit = (a_val / m) if m else 1.0
+    tol = 0.5 * (10 ** -dec) * unit * 1.0000001
+    return any(abs(v - a_val) <= max(tol, abs(a_val) * 1e-9) for v in ev_vals)
+
+
+ATTRIBUTION_RE = re.compile(
+    r"\b[A-Z][a-z]+(?:\s+and\s+[A-Z][a-z]+)?\s+et\s+al\.?|\b(?:previous|prior|earlier|recent|existing|past)\s+(?:work|works|studies|study|research|methods|approaches|literature|reports?)\b|"
+    r"\b(?:has|have|had)\s+been\s+(?:shown|reported|demonstrated|observed|proposed|found|suggested)\b|\bit\s+is\s+(?:well\s+)?known\b|"
+    r"\bwas\s+(?:shown|reported|proposed|introduced|demonstrated)\s+(?:by|in)\b|\baccording\s+to\b|\bas\s+(?:reported|shown)\s+(?:by|in)\b|"
+    r"已有研究|前人|文献\s*\[|据报道|先前的?研究|既往研究|有研究(?:表明|发现|报道)", re.I)
+FIRST_PERSON_RE = re.compile(r"\b(?:we|our|ours|us)\b|本文|我们|本研究|本工作", re.I)
+LIMITERS = ["only", "solely", "except", "at least", "at most", "up to", "as long as", "provided that", "unless", "if and only if",
+            "in some", "in most", "in part", "partially", "仅", "只有", "只在", "除了", "至少", "最多", "部分", "当且仅当"]
+
+
+def src_hash(md):
+    """SHA-256 of the source file (PDF or text/docx source)."""
+    md = md or {}
+    for k in ("pdf_sha256", "file_sha256"):
+        v = md.get(k)
+        v = v.get("value") if isinstance(v, dict) else v
+        if v:
+            return v
+    return None
 
 
 def cues(text):
@@ -380,9 +471,9 @@ def extract_metadata(pdf_path, doc_json):
         if start is not None:
             names2 = []
             for l in lines[start + 1:start + 60]:
-                if re.match(r"\s*(abstract|summary|1\.?\s+introduction|摘要)", l, re.I):
+                if re.match(r"\s*(abstract|summary|1\.?\s+introduction|摘要)\b", l, re.I):
                     break
-                if re.search(r"conference|proceedings|workshop|symposium|USA|[A-Z]{2}, [A-Z]|(19|20)\d\d", l, re.I):
+                if re.search(r"conference|proceedings|workshop|symposium|\bUSA\b|\b[A-Z]{2}, [A-Z]|\b(19|20)\d\d\b", l, re.I):
                     continue  # venue / place lines
                 for nme in split_authors(l):
                     if nme not in names2:
@@ -451,7 +542,7 @@ def source_iri(md):
         return "https://doi.org/" + v("doi")
     if v("arxiv_id"):
         return "https://arxiv.org/abs/" + v("arxiv_id") + (v("version") or "")
-    return "urn:sha256:" + (v("pdf_sha256") or "unknown")
+    return "urn:sha256:" + (src_hash(md) or "unknown")
 
 
 # ---------------------------------------------------------------- sentence index

@@ -41,7 +41,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\run_eval.py
  "authors_precision_mean": 1.0,
  "exports_roundtrip_ok": true,
  "deterministic": true,
- "wall_seconds": 11.11
+ "wall_seconds": 13.46
 }
 CHECK {"paper": "attention", "holdout": false, "id": "t04", "clean": true, "expected_rules": [], "verdict": "warn", "rules_found": ["R24"], "confidence": 0.65, "evidence_match": ["exact_sentence"], "bbox_precision": ["quote"], "pages": [9], "ok": true, "strict_pass": false, "located": true}
 
@@ -51,12 +51,22 @@ CHECK {"paper": "attention", "holdout": false, "id": "t04", "clean": true, "expe
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\encrypted_pdf\work
 {
  "case_id": "encrypted_pdf",
- "pdfs": [
-  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\input\\paper.pdf"
+ "materials": [
+  {
+   "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\input\\paper.pdf",
+   "role": "primary",
+   "stem": "paper",
+   "format": "pdf"
+  }
  ],
+ "primary_source": "paper",
  "contract_fields": [
   "assertions"
  ],
+ "required_fields": [
+  "assertions"
+ ],
+ "optional_fields": [],
  "field_kind_suggestions": {
   "assertions": "assertions"
  },
@@ -83,10 +93,15 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\no_pdf\work
 {
  "case_id": "no_pdf",
- "pdfs": [],
+ "materials": [],
+ "primary_source": null,
  "contract_fields": [
   "assertions"
  ],
+ "required_fields": [
+  "assertions"
+ ],
+ "optional_fields": [],
  "field_kind_suggestions": {
   "assertions": "assertions"
  },
@@ -98,7 +113,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\no_pdf\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.0
+ "seconds": 0.01
 }
 
 
@@ -107,8 +122,11 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\nope.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\missing_case\work
 {
  "case_id": null,
- "pdfs": [],
+ "materials": [],
+ "primary_source": null,
  "contract_fields": [],
+ "required_fields": [],
+ "optional_fields": [],
  "field_kind_suggestions": {},
  "parse_status": [],
  "metadata": [],
@@ -118,7 +136,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\work\\draft.json",
  "task_file": null,
  "case_error": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\missing_case\\nope.json not found",
- "seconds": 0.0
+ "seconds": 0.01
 }
 
 
@@ -127,12 +145,22 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\work
 {
  "case_id": "image",
- "pdfs": [
-  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\input\\paper.pdf"
+ "materials": [
+  {
+   "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\input\\paper.pdf",
+   "role": "primary",
+   "stem": "paper",
+   "format": "pdf"
+  }
  ],
+ "primary_source": "paper",
  "contract_fields": [
   "assertions"
  ],
+ "required_fields": [
+  "assertions"
+ ],
+ "optional_fields": [],
  "field_kind_suggestions": {
   "assertions": "assertions"
  },
@@ -155,7 +183,8 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
    "venue": null,
    "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
    "page_count": 11,
-   "file_name": "paper.pdf"
+   "file_name": "paper.pdf",
+   "material_role": "primary"
   }
  ],
  "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\output\\result.json",
@@ -166,7 +195,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.84
+ "seconds": 1.04
 }
 
 
@@ -225,7 +254,8 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
   "warn": 1,
   "fail": 0,
   "rule_counts": {
-   "R26:warn": 1
+   "R26:warn": 1,
+   "R30:warn": 1
   }
  },
  "export_roundtrip": {
@@ -240,25 +270,35 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "status_reason": {
   "failing_records": 0,
   "unfilled_fields": [],
+  "needs_review_fields": [],
+  "unfilled_optional_fields": [],
+  "schema_problems": [],
   "export_ok": true,
   "image_read_records_need_human_review": [
    "i1"
-  ]
+  ],
+  "unread_source_pages": [],
+  "contract_errors": [],
+  "assertions_not_built": []
  },
+ "build_errors": [],
+ "auto_filled_fields": [],
+ "field_problems": null,
  "records": [
   {
    "id": "i1",
    "verdict": "warn",
-   "confidence": 0.53,
+   "confidence": 0.43,
    "issues": [
-    "R26 warn: evidence read from a page image; reading not machine-checked [Sergey Ioffe Google Inc., sioffe@google.com]"
+    "R26 warn: evidence read from a page image; reading not machine-checked [Sergey Ioffe Google Inc., sioffe@google.com]",
+    "R30 warn: image_region evidence is not fully reproducible [['provenance.source_pdf_sha256']]"
    ],
    "evidence": [
     "image_read p1 "
    ]
   }
  ],
- "seconds": 0.08
+ "seconds": 0.09
 }
 
 
@@ -268,12 +308,26 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
 Consider using the pymupdf_layout package for a greatly improved page layout analysis.
 {
  "case_id": "v02_schema",
- "pdfs": [
-  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\input\\paper.pdf"
+ "materials": [
+  {
+   "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\input\\paper.pdf",
+   "role": "primary",
+   "stem": "paper",
+   "format": "pdf"
+  }
  ],
+ "primary_source": "paper",
  "contract_fields": [
   "assertions",
   "nquads",
+  "summary",
+  "unreported"
+ ],
+ "required_fields": [
+  "assertions",
+  "nquads"
+ ],
+ "optional_fields": [
   "summary",
   "unreported"
  ],
@@ -304,7 +358,8 @@ Consider using the pymupdf_layout package for a greatly improved page layout ana
    "venue": "ILSVRC 2015",
    "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
    "page_count": 12,
-   "file_name": "paper.pdf"
+   "file_name": "paper.pdf",
+   "material_role": "primary"
   }
  ],
  "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\output\\result.json",
@@ -315,7 +370,7 @@ Consider using the pymupdf_layout package for a greatly improved page layout ana
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 1.16
+ "seconds": 1.36
 }
 
 
@@ -347,9 +402,18 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "status_reason": {
   "failing_records": 0,
   "unfilled_fields": [],
+  "needs_review_fields": [],
+  "unfilled_optional_fields": [],
+  "schema_problems": [],
   "export_ok": true,
-  "image_read_records_need_human_review": []
+  "image_read_records_need_human_review": [],
+  "unread_source_pages": [],
+  "contract_errors": [],
+  "assertions_not_built": []
  },
+ "build_errors": [],
+ "auto_filled_fields": [],
+ "field_problems": null,
  "records": [
   {
    "id": "v1",
@@ -375,8 +439,80 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
    ]
   }
  ],
- "seconds": 0.14
+ "seconds": 0.19
 }
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\test_v03.py
+{"test": "R09 accepts 6 billion == 60 亿", "ok": true, "rules": ["R19:warn", "R23:warn"]}
+{"test": "R09 accepts 1.28 million as rounding of 1,281,167", "ok": true, "rules": []}
+{"test": "R09 accepts 128万 == 1.28 million", "ok": true, "rules": ["R11:fail", "R19:warn", "R23:warn"]}
+{"test": "R27 flags 6 million vs 6 billion", "ok": true, "rules": ["R27:fail"]}
+{"test": "R27 silent on identical magnitude", "ok": true, "rules": []}
+{"test": "R07 flags 'respectively'", "ok": true, "rules": ["R07:fail", "R11:fail", "R19:warn"]}
+{"test": "R07 flags several values in one record", "ok": true, "rules": ["R07:fail", "R10:warn", "R19:warn", "R23:warn"]}
+{"test": "R07 flags Chinese clause conjunction without comma", "ok": true, "rules": ["R07:fail", "R19:warn"]}
+{"test": "R07 silent on a range ('between 70% and 80%')", "ok": true, "rules": []}
+{"test": "R20 flags attribution phrase without citation marker", "ok": true, "rules": ["R20:warn"]}
+{"test": "R20 silent on first-person finding", "ok": true, "rules": []}
+{"test": "R29 flags cited_work on an own first-person result", "ok": true, "rules": ["R29:warn"]}
+{"test": "R16 flags a dropped limiter ('only')", "ok": true, "rules": ["R16:warn"]}
+{"test": "R28 accepts a correct inferred difference", "ok": true, "rules": []}
+{"test": "R28 flags an arithmetic step that does not compute", "ok": true, "rules": ["R28:fail"]}
+{"test": "R28 flags a false comparison", "ok": true, "rules": ["R28:fail"]}
+{"test": "R28 flags an operand read from another table (7.40 is Table 3, ResNet-34 C)", "ok": true, "rules": ["R28:fail"]}
+{"test": "R28 closes the 'number only in reasoning' loophole", "ok": true, "rules": ["R28:fail"]}
+{"test": "R30 fails an image region without bbox", "ok": true, "rules": ["R11:fail", "R19:warn", "R26:warn", "R30:fail"]}
+{"test": "R30 silent on a reproducible crop (R26 warn stays)", "ok": true, "rules": ["R11:fail", "R19:warn", "R26:warn"]}
+{"test": "R31 flags a figure claim without figure evidence", "ok": true, "rules": ["R17:warn", "R31:warn"]}
+{"test": "R31 silent when the caption is bound", "ok": true, "rules": ["R17:warn"]}
+{"test": "R12 flags dropped 'probably'", "ok": true, "rules": ["R12:warn"]}
+{"test": "R28 flags cross-table inferred comparison (P1-4)", "ok": true, "rules": ["R10:warn", "R28:fail"]}
+{"test": "R09 flags metric swap HR vs OR (P1-5)", "ok": true, "rules": ["R09:fail", "R19:warn"]}
+{"test": "R07 flags 'while lowering' compound clause (P1-5)", "ok": true, "rules": ["R07:fail"]}
+{"test": "contract: JSON Schema required vs optional", "ok": true, "got": {"assertions": true, "n": true, "notes": false}}
+{"test": "contract: nested output_fields list with required:false", "ok": true, "got": [{"name": "a", "required": true, "type": "string", "nullable": false, "schema": {"name": "a", "type": "string"}, "description": null}, {"name": "b", "required": false, "type": null, "nullable": false, "schema": {"name": "b", "required": false}, "description": null}]}
+{"test": "contract: deliverables with fields + file-only items", "ok": true, "got": {"fields": [{"name": "x", "required": true, "type": null, "nullable": false, "schema": null, "description": null}, {"name": "y", "required": true, "type": null, "nullable": false, "schema": null, "description": null}], "files": ["result.json", "preview.png"], "style": "list"}}
+{"test": "contract: 'schema' wrapper, empty required -> optional", "ok": true, "got": [{"name": "z", "required": false, "type": "number", "nullable": false, "schema": {"type": "number"}, "description": null}]}
+{"test": "contract: required_fields / optional_fields", "ok": true}
+{"test": "validate: '12' -> 12 for integer", "ok": true, "v": 12, "p": []}
+{"test": "validate: 3.5 is not an integer (no truncation)", "ok": true, "p": ["$: expected integer, got float"]}
+{"test": "validate: integer is a number", "ok": true}
+{"test": "validate: boolean is not an integer", "ok": true, "p": ["$: expected integer, got bool"]}
+{"test": "validate: nested items required key missing", "ok": true, "p": ["a[1].claim: required key missing"]}
+{"test": "validate: nested properties coercion", "ok": true, "v": {"k": {"n": 2}}}
+{"test": "contract: union type ['array', 'object'] does not crash (P0-1)", "ok": true}
+{"test": "validate: union type continues recursive items check (P0-1)", "ok": true, "p": ["items_or_obj[0].claim: required key missing"]}
+{"test": "contract: mixed wrappers merged without dropping fields (P0-2)", "ok": true, "got": ["a", "b", "c", "d"]}
+{"test": "validate: '1e999' rejected (no Infinity) (P0-4)", "ok": true, "p": ["big: expected number, got str"], "v": "1e999"}
+{"test": "e2e: case_id 0 kept", "ok": true, "case_id": 0}
+{"test": "e2e: optional field unfilled -> still success", "ok": true, "status": "success", "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: '1' coerced to integer 1 for an integer field", "ok": true, "v": 1}
+{"test": "e2e: status field filled", "ok": true}
+{"test": "e2e: required integer field given 'one' -> partial + field_problems", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["n_assertions"], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": ["n_assertions"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: nested items.required enforced, 'rename' satisfies it", "ok": true, "before": "partial", "after": "success"}
+{"test": "e2e: role=primary beats a larger supplement", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\main.pdf", "role": "primary", "stem": "main", "format": "pdf"}, {"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\supp_big.pdf", "role": "supplement", "stem": "supp_big", "format": "pdf"}]}
+{"test": "e2e: key names (paper_pdf vs supplementary_pdf) decide the primary", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\article.pdf", "role": "primary", "stem": "article", "format": "pdf"}, {"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\SI_appendix.pdf", "role": "supplement", "stem": "SI_appendix", "format": "pdf"}]}
+{"test": "e2e: corrupt draft -> exit 2, result.json unchanged, build_error.json written", "ok": true, "code": 2}
+{"test": "e2e: empty draft after a good build -> exit 3, result.json unchanged", "ok": true, "code": 3}
+{"test": "e2e: assertions not a list -> exit 2, unchanged", "ok": true, "code": 2}
+{"test": "e2e: malformed assertions isolated -> others built, status partial, build_errors listed", "ok": true, "build_errors": [{"index": 2, "id": null, "error": "assertion must be an object, got str"}, {"index": 3, "id": "a3", "error": "ValueError: evidence item must be a sentence id, a quote or an object, got list", "fix_hint": "check this assertion's evidence / qualifiers shape against SKILL.md"}]}
+{"test": "e2e: --merge appends a2 to the built a1", "ok": true, "ids": ["a1", "a2"]}
+{"test": "e2e: --merge with delete removes a2", "ok": true}
+{"test": "e2e: markdown paper parsed with stable ids + front-matter metadata", "ok": true, "sid": "p1-b3-s1", "md": {"title": "Sparse Widgets Improve Gadget Recall", "authors": ["Ada Lovelace", "Alan Turing"], "doi": "10.5555/widgets.2024.7", "year": 2024}}
+{"test": "e2e: markdown sentence + 亿-scaled value + table cell all bind, status success", "ok": true, "verdicts": {"m1": ["pass", []], "m2": ["pass", []], "m3": ["pass", []]}, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": [], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: .txt fallback (task.md skipped), form feed -> logical page 2", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c8_txt\\input\\notes.txt", "role": "unlabelled", "stem": "notes", "format": "txt"}], "ids": ["p1-b2-s1", "p2-b1-s1"]}
+{"test": "e2e: .docx parsed: title, heading section, page break, core authors", "ok": true, "s1": "p1-b3-s1", "md": [{"title": "Docx Paper on Widgets", "authors": ["Ada Lovelace", "Alan Turing"], "arxiv_id": null, "version": null, "doi": null, "year": null, "venue": null, "file_sha256": "7119493a7378af8b5c336e4f49a8015a10ea599ade3c0f57abd7f6c7df751c0c", "source_format": "docx", "page_count": 2, "file_name": "paper.docx", "material_role": "primary"}]}
+{"test": "e2e: hostile chars -> every N-Quads line is strictly valid, round trip ok", "ok": true, "bad": []}
+{"test": "e2e: paper.md beats appendix.pdf without manifest (P1-2)", "ok": true, "primary": "paper"}
+{"test": "e2e: resource_token not auto-filled as provenance (P1-3)", "ok": true}
+{"test": "e2e: 1e999 rejected & needs_review required field -> partial, valid JSON (P0-4, P1-3)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["score"], "needs_review_fields": ["review_note"], "unfilled_optional_fields": ["resource_token"], "schema_problems": ["score"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: reserved field_status in draft.fields -> exit 2, result.json and nanopubs.nq untouched (P0-3)", "ok": true, "code": 2}
+{"test": "e2e: broken case.json re-init does not clobber built result.json (P1-1)", "ok": true}
+{"test": "e2e: unresolved_pages on source -> partial (P0-5)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["resource_token"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [{"stem": "paper", "unresolved_pages": [2], "pages_not_parsed": []}], "contract_errors": [], "assertions_not_built": []}}
+{"n_tests": 66, "passed": 66, "failed": []}
 
 
 [exit 0]
