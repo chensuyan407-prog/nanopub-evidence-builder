@@ -11,7 +11,7 @@ import os
 import re
 import unicodedata
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 TOOL = f"nanopub-evidence-builder {VERSION}"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(HERE)
@@ -32,7 +32,7 @@ def utf8_stdout():
 
 
 def load_json(p):
-    with open(p, encoding="utf-8") as fh:
+    with open(p, encoding="utf-8-sig") as fh:
         return json.load(fh)
 
 
@@ -185,6 +185,10 @@ CITE_RE = re.compile(r"\[\s*\d+(?:\s*[-–,]\s*\d+)*\s*\]|\(\s*[A-Z][A-Za-z\-]+(
 COORD_RE = re.compile(r";|\band\b|\bwhile\b|\bwhereas\b|\bbut\b|\bas well as\b|\balso\b|以及|并且|同时|而且|，而")
 
 
+NEG_EXCLUDE_ZH = ("不同", "不断", "不仅", "不但", "不过", "不少", "无论", "不论", "未来", "未知",
+                  "是否", "能否", "可否", "与否", "无监督", "无偏", "无损", "无创", "无毒", "非参数", "非线性")
+
+
 def _has_word(text_l, w):
     if re.match(r"[一-鿿]", w):
         return w in text_l
@@ -193,6 +197,11 @@ def _has_word(text_l, w):
 
 def find_words(text, words):
     t = norm(text)
+    if words is NEGATION:
+        t_zh = t
+        for ex in NEG_EXCLUDE_ZH:
+            t_zh = t_zh.replace(ex, " " * len(ex))
+        return [w for w in words if _has_word(t_zh if re.match(r"[一-鿿]", w) else t, w)]
     return [w for w in words if _has_word(t, w)]
 
 
@@ -339,7 +348,15 @@ def extract_metadata(pdf_path, doc_json):
     elif info.get("title"):
         md["title"] = {"value": info["title"].strip(), "source": _src("pdf_info"), "confidence": "medium"}
     else:
-        md["title"] = {"value": None, "source": _src("not_found"), "confidence": None}
+        cand = next((b for b in sorted(p1, key=lambda b: b.get("order") or 0)
+                     if 8 <= len(norm(b.get("text", ""), lower=False)) <= 180
+                     and not re.search(r"arXiv:|http://|https://|^abstract\b|^summary\b", b.get("text", ""), re.I)
+                     and not re.fullmatch(r"[\d\s.\-/]+", b.get("text", "").strip())), None)
+        if cand:
+            ttl = norm(cand["text"], lower=False)
+            md["title"] = {"value": ttl, "source": _src("pdf_text", 1, cand.get("id"), ttl), "confidence": "low", "needs_review": True}
+        else:
+            md["title"] = {"value": None, "source": _src("not_found"), "confidence": None}
     # authors
     ab = [b for b in p1 if b.get("role") == "author_affiliation"]
     if tb:  # everything between the title and the first heading is the author block

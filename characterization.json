@@ -126,7 +126,7 @@
    "actual_value": 1.0,
    "reference_value": 1.0,
    "score": 1.0,
-   "explanation": "encrypted_pdf, no_pdf, missing_case_json, image_region_evidence",
+   "explanation": "encrypted_pdf, no_pdf, missing_case_json, image_region_evidence, v02_schema_nquads_inferred_r07",
    "evidence_artifact": "metrics",
    "tolerance": 0.0
   }

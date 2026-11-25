@@ -386,9 +386,13 @@ def slot(x, kind=None):
 def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
     pred = a.get("predicate")
     pinfo = vocab["predicates"].get(pred, {})
-    quals = {k: v for k, v in (a.get("qualifiers") or {}).items() if v not in (None, "", [])}
-    ev_items = a.get("evidence") or []
-    ev = [resolve_item(src, e) for e in ev_items] + [resolve_item(src, e, "context") for e in (a.get("context") or [])]
+    raw_q = a.get("qualifiers")
+    quals = {k: v for k, v in raw_q.items() if v not in (None, "", [])} if isinstance(raw_q, dict) else {}
+    ev_raw = a.get("evidence") or []
+    ev_items = ev_raw if isinstance(ev_raw, list) else [ev_raw]
+    ctx_raw = a.get("context") or []
+    ctx_items = ctx_raw if isinstance(ctx_raw, list) else [ctx_raw]
+    ev = [resolve_item(src, e) for e in ev_items] + [resolve_item(src, e, "context") for e in ctx_items]
     md = src.md
     sha = (md.get("pdf_sha256") or {}).get("value")
     s, o = slot(a.get("subject")), slot(a.get("object"))
@@ -749,14 +753,23 @@ def main():
     src = Source(pdir, draft.get("source_overrides"))
     # group assertions by source if several PDFs are used
     srcs = {os.path.basename(pdir): src}
+    for d in dirs:
+        nm = os.path.basename(d)
+        if nm not in srcs:
+            srcs[nm] = Source(d, draft.get("source_overrides"))
     records = []
     for i, asr in enumerate(draft.get("assertions", []), 1):
         s = src
         if asr.get("source") and asr["source"] != os.path.basename(pdir):
             sd = os.path.join(a.out, "parsed", asr["source"])
             if asr["source"] not in srcs and os.path.exists(os.path.join(sd, "doc.json")):
-                srcs[asr["source"]] = Source(sd)
+                srcs[asr["source"]] = Source(sd, draft.get("source_overrides"))
             s = srcs.get(asr["source"], src)
+        elif not asr.get("source") and len(srcs) > 1:
+            ev_list = asr.get("evidence") if isinstance(asr.get("evidence"), list) else ([asr.get("evidence")] if asr.get("evidence") else [])
+            sid = next((e if isinstance(e, str) else e.get("sentence") or e.get("sentence_id") for e in ev_list if isinstance(e, (str, dict))), None)
+            if isinstance(sid, str) and sid not in s.by_id:
+                s = next((cand for cand in srcs.values() if sid in cand.by_id), s)
         records.append(build_record(s, asr, i, vocab, a.creator, created, draft.get("unreported") or []))
     seen = {}
     for r in records:  # identical content -> same id; keep URIs unique in the export (R24 reports the duplicate)
@@ -794,14 +807,22 @@ def main():
     fields = draft.get("fields") or {}
     res.setdefault("field_status", {})
     res["field_evidence"] = res.get("field_evidence") or {}
+    unrep = list(draft.get("unreported") or [])
+    pre_conflicts = (res.get("conflicts") or []) + [x for x in (draft.get("conflicts") or []) if x not in (res.get("conflicts") or [])]
+    if src.overrides_log:
+        pre_conflicts = pre_conflicts + [{"type": "metadata_override", **o} for o in src.overrides_log if o["from"] not in (None, o["to"])]
+    pre_uncertainty = (res.get("uncertainty") or []) + [x for x in (draft.get("uncertainty") or []) if x not in (res.get("uncertainty") or [])]
     views = {"nanopublications": records, "assertions": [flat_assertion(r) for r in records],
              "evidence": flat_evidence(records), "provenance": provenance_view(src), "quality": qrep,
              "relations": [{"assertion_id": r["assertion"]["id"], "subject": r["assertion"]["subject"]["label"],
                             "predicate": r["assertion"]["predicate"]["id"], "object": r["assertion"]["object"]["label"],
                             "qualifiers": r["assertion"]["qualifiers"]} for r in records],
-             "trig": "nanopubs.trig", "nquads": "nanopubs.nq", "jsonld": "nanopubs.jsonld"}
+             "trig": "nanopubs.trig", "nquads": "nanopubs.nq", "jsonld": "nanopubs.jsonld",
+             "review": "review.md", "unreported": unrep, "conflicts": pre_conflicts, "uncertainty": pre_uncertainty,
+             "summary": {"n_assertions": len(records), "quality": qrep["summary"], "export_roundtrip_ok": rt["ok"],
+                         "source_iri": C.source_iri(src.md)},
+             "status": "pending"}
     by_aid = {r["assertion"]["id"]: r for r in records}
-    unrep = list(draft.get("unreported") or [])
     for f, spec in fields.items():
         spec = spec if isinstance(spec, dict) else {"value": spec}
         kind = spec.get("kind", "agent_value")
@@ -820,7 +841,7 @@ def main():
             if sel and isinstance(v, list):
                 v = [x for x in v if (x.get("assertion_id") or (x.get("assertion") or {}).get("id")) in sel]
             res[f] = v
-            res["field_status"][f] = "generated" if v not in (None, [], "") else "unreported"
+            res["field_status"][f] = "generated" if (v not in (None, "") or kind in ("unreported", "conflicts", "uncertainty")) else "unreported"
         else:
             res["field_status"][f] = "unreported"
             if res.get(f) is None and not any(u.get("field") == f for u in unrep if isinstance(u, dict)):
@@ -843,6 +864,9 @@ def main():
         res["status"] = "partial" if res.get("status") != "failed" else "failed"
     else:
         res["status"] = "success" if (n_fail == 0 and not missing and rt["ok"] and not image_only) else "partial"
+    for f, spec in fields.items():
+        if isinstance(spec, dict) and spec.get("kind") == "status" and "value" not in spec:
+            res[f] = res["status"]
     res["status_reason"] = {"failing_records": n_fail, "unfilled_fields": missing, "export_ok": rt["ok"],
                             "image_read_records_need_human_review": image_only}
     res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL, "draft": a.draft, "n_assertions": len(records),

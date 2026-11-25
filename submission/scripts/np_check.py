@@ -168,9 +168,16 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
             out.append(issue("R06", "warn", f"support quote is long ({len(q)} chars, {len(C.split_sentences(q))} sentences)", q[:80] + "...",
                              "cite the single sentence (or clause) that states the claim; put the rest as role=context"))
     # R07/R08 granularity
+    text_no_paren = re.sub(r"\([^)]*\)|\[[^\]]*\]", " ", C.CITE_RE.sub(" ", text))
+    adj_part = re.compile(r"^\s*(?:and|or)\s+(?:improved|reduced|increased|decreased|achieved|obtained)\b", re.I)
     for rx, why in COMPOUND_RES:
-        mm = rx.search(text)
+        hay = text_no_paren if why == "semicolon joins clauses" else text
+        mm = rx.search(hay)
         if mm:
+            if why == "conjunction + second verb" and adj_part.match(mm.group(0)):
+                tail = hay[mm.end():].lstrip()
+                if tail and not re.match(r"(?:by|from|to|the|in|on|under|than|that|which)\b", tail, re.I):
+                    continue
             out.append(issue("R07", "fail", f"assertion looks compound ({why})", mm.group(0),
                              "split into one assertion per claim, each with its own evidence"))
             break
@@ -185,6 +192,10 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
                              "if the claim holds for each entity separately, make one assertion per entity"))
     # numbers
     ev_text = " ".join((e.get("quote") or "") + " " + (e.get("transcription") or "") + " " + (e.get("table_context") or "") for e in ev)
+    if (np_rec.get("evidence_type") == "inferred") and (np_rec.get("reasoning") or "").strip():
+        rsn = np_rec["reasoning"]
+        if C.numbers(ev_text):
+            ev_text = ev_text + " " + rsn
     ev_norm = C.norm(ev_text, lower=False)
     ev_cores = {C.num_core(n) for n in C.numbers(ev_text)}
     qual_text = " ".join(str(v) for k, v in quals.items() if k not in ("condition", "note") and v not in (None, ""))
@@ -272,10 +283,11 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
     # provenance
     def pv(k):
         return ((prov.get("source") or {}).get(k) or {}).get("value") if isinstance((prov.get("source") or {}).get(k), dict) else (prov.get("source") or {}).get(k)
+    unrep = set(prov.get("unreported_fields") or [])
     for k in ("title", "pdf_sha256"):
         if not pv(k):
-            out.append(issue("R25", "fail", f"provenance: {k} missing", k))
-    unrep = set(prov.get("unreported_fields") or [])
+            sev = "warn" if (k == "title" and k in unrep) else "fail"
+            out.append(issue("R25", sev, f"provenance: {k} missing", k))
     for k in ("authors", "year"):
         if not pv(k) and k not in unrep:
             out.append(issue("R25", "warn", f"provenance: {k} missing and not marked unreported", k))

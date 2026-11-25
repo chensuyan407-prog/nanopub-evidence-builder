@@ -19,6 +19,7 @@ import argparse
 import glob
 import json
 import os
+import re
 import sys
 import time
 
@@ -27,7 +28,7 @@ sys.path.insert(0, HERE)
 import np_common as C  # noqa: E402
 import parse_pdf  # noqa: E402
 
-CONTRACT_KEYS = ("output_contract", "outputs_contract", "output_schema", "required_outputs", "output_fields", "outputs")
+CONTRACT_KEYS = ("output_contract", "outputs_contract", "output_schema", "required_outputs", "output_fields", "outputs", "deliverables")
 
 
 def find_contract(obj):
@@ -51,7 +52,7 @@ def contract_fields(contract):
     if contract is None:
         return []
     if isinstance(contract, dict):
-        for k in ("fields", "required", "required_fields", "properties"):
+        for k in ("fields", "properties", "required_fields", "required"):
             if k in contract and isinstance(contract[k], (dict, list)):
                 return contract_fields(contract[k])
         return list(contract.keys())
@@ -111,10 +112,18 @@ def _kind_of(t):
                        ("provenance", ("provenance", "source", "metadata", "citation", "bibliograph", "来源", "元数据")),
                        ("quality", ("quality", "check", "issue", "flag", "validation", "质量", "校验")),
                        ("relations", ("relation", "triple", "edge", "关系")),
-                       ("trig", ("trig", "rdf", "nquads", "turtle")),
-                       ("jsonld", ("json-ld", "jsonld"))):
+                       ("nquads", ("nquads", "n-quads", ".nq")),
+                       ("trig", ("trig", "rdf", "turtle")),
+                       ("jsonld", ("json-ld", "jsonld")),
+                       ("unreported", ("unreported", "missing", "未报告", "缺失")),
+                       ("conflicts", ("conflict", "contradiction", "冲突", "矛盾")),
+                       ("uncertainty", ("uncertainty", "limitation", "边界", "不确定")),
+                       ("review", ("review", "report", "报告")),
+                       ("summary", ("summary", "overview", "总结", "摘要说明", "综述"))):
         if any(k in t for k in keys):
             return kind
+    if re.search(r"\bstatus\b|运行状态", t):
+        return "status"
     return None
 
 
@@ -208,7 +217,7 @@ def main():
     result = {"case_id": case_id}
     for f in fields:
         result.setdefault(f, None)
-    descs = contract if isinstance(contract, dict) else {}
+    descs = contract.get("properties") if (isinstance(contract, dict) and isinstance(contract.get("properties"), dict)) else (contract if isinstance(contract, dict) else {})
     result.update({
         "status": "pending_agent_fill",
         "nanopublications": result.get("nanopublications") if "nanopublications" in fields else [],
@@ -233,7 +242,7 @@ def main():
     if not os.path.exists(draft_path):
         C.dump_json({
             "_help": "Fill 'assertions' (one atomic claim each) and 'fields'. Evidence = sentence ids from sentences.jsonl "
-                     "or {page, quote}. Then: python np_build.py --draft WORK/draft.json --out OUT. See SKILL.md.",
+                     "or {page, quote}. Then: python3 np_build.py --draft WORK/draft.json --out OUT. See SKILL.md.",
             "source": os.path.splitext(os.path.basename(pdfs[0]))[0] if pdfs else None,
             "source_overrides": {},
             "assertions": [],

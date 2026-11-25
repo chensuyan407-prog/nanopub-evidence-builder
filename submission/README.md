@@ -1,4 +1,4 @@
-# nanopub-evidence-builder 0.1.0 — field dictionary, method, limits
+# nanopub-evidence-builder 0.2.0 — field dictionary, method, limits
 
 Agent Skill for **阅读14｜Nanopublication**: turn the conclusions of a scientific PDF into
 nanopublications — one atomic, checkable assertion per record, each bound to the smallest verbatim
@@ -96,7 +96,5 @@ deterministic. A "quote exists in the PDF" checker alone catches 4/28 of the pla
 
 ## Maintenance
 
-Version 0.1.0 (2026-11-23). Change vocabulary in `vocab/relations.json` (predicates need `relation_type` and
-`polarity`); rules live in `np_check.py` (one block per rule id, stable ids). Re-run `python tests/run_eval.py`
-in the bundle after any change; add a labelled case to `tests/eval/` for every bug found.
+Version 0.2.0 (2026-11-25). Added JSON Schema `output_contract` support, `nquads`/`summary`/`unreported`/`conflicts`/`uncertainty`/`review` view mappings, `inferred` + `reasoning` numeric verification, parenthetical semicolon / adjectival participle `R07` false-fail fixes, Chinese non-negation exclusions, multi-PDF resolution, and `python3` `$SKILL_DIR` guidance. Change vocabulary in `vocab/relations.json` (predicates need `relation_type` and `polarity`); rules live in `np_check.py` (one block per rule id, stable ids). Re-run `python tests/run_eval.py` in the bundle after any change; add a labelled case to `tests/eval/` for every bug found.
 Maintainer: the submitting participant (see the attempt page on play.bohrium.com).

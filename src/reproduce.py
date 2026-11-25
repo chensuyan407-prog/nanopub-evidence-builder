@@ -100,6 +100,60 @@ def robustness(log):
         r = json.load(fh)
     out["image_region_evidence"] = {"status": r["status"], "status_reason": r["status_reason"],
                                     "ok": r["status"] == "partial" and r["status_reason"]["image_read_records_need_human_review"] == ["i1"]}
+    # v0.2.0: JSON schema contract, nquads/summary/unreported views, inferred+reasoning R09, paren semicolon / adj participle R07
+    d = os.path.join(base, "v02_features")
+    os.makedirs(os.path.join(d, "input"))
+    shutil.copy(os.path.join(ROOT, "tests", "pdfs", "resnet.pdf"), os.path.join(d, "input", "paper.pdf"))
+    with open(os.path.join(d, "input", "case.json"), "w", encoding="utf-8") as fh:
+        json.dump({
+            "case_id": "v02_schema",
+            "pdf": "paper.pdf",
+            "output_contract": {
+                "type": "object",
+                "properties": {
+                    "assertions": {"type": "array"},
+                    "nquads": {"type": "string"},
+                    "summary": {"type": "object"},
+                    "unreported": {"type": "array"},
+                },
+                "required": ["assertions", "nquads"],
+            },
+        }, fh)
+    run([sys.executable, os.path.join(SCRIPTS, "np_init.py"), "--case", os.path.join(d, "input", "case.json"),
+         "--out", os.path.join(d, "output"), "--work", os.path.join(d, "work")], log)
+    with open(os.path.join(d, "work", "draft.json"), encoding="utf-8") as fh:
+        init_draft = json.load(fh)
+    draft5 = {
+        "source": "paper",
+        "assertions": [
+            {"id": "v1", "text": "ResNet-152 achieves higher accuracy and reduced latency (He et al., 2015; ImageNet).",
+             "subject": "ResNet-152", "predicate": "outperforms", "object": "shallower models",
+             "evidence_type": "direct", "evidence": ["p1-b5-s6"]},
+            {"id": "v2", "text": "ResNet-152 lowers top-5 error by 2.91 percentage points relative to ResNet-34 B.",
+             "subject": "ResNet-152", "predicate": "lower_than", "object": "ResNet-34 B",
+             "qualifiers": {"value": "2.91", "unit": "percentage points"},
+             "evidence_type": "inferred", "reasoning": "Table 4 top-5 err.: 7.40 - 4.49 = 2.91",
+             "evidence": [{"type": "table_cell", "table": "Table 4", "row": {"method": "ResNet-152"}, "column": "top-5 err."},
+                          {"type": "table_cell", "table": "Table 4", "row": {"method": "ResNet-34 B"}, "column": "top-5 err."}]},
+        ],
+        "fields": init_draft["fields"],
+        "unreported": [{"field": "doi", "reason": "no DOI printed on page 1"}],
+    }
+    with open(os.path.join(d, "work", "draft.json"), "w", encoding="utf-8") as fh:
+        json.dump(draft5, fh)
+    rb5 = run([sys.executable, os.path.join(SCRIPTS, "np_build.py"), "--draft", os.path.join(d, "work", "draft.json"),
+               "--out", os.path.join(d, "output"), "--created", "2026-11-25T00:00:00Z"], log)
+    with open(os.path.join(d, "output", "result.json"), encoding="utf-8") as fh:
+        r5 = json.load(fh)
+    out["v02_schema_nquads_inferred_r07"] = {
+        "status": r5.get("status"),
+        "nquads": r5.get("nquads"),
+        "has_summary": isinstance(r5.get("summary"), dict),
+        "fails": r5.get("quality_summary", {}).get("fail"),
+        "ok": (rb5.returncode == 0 and r5.get("status") == "success" and r5.get("nquads") == "nanopubs.nq"
+               and isinstance(r5.get("summary"), dict) and isinstance(r5.get("unreported"), list)
+               and r5.get("quality_summary", {}).get("fail") == 0),
+    }
     return out
 
 

@@ -41,7 +41,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\run_eval.py
  "authors_precision_mean": 1.0,
  "exports_roundtrip_ok": true,
  "deterministic": true,
- "wall_seconds": 11.2
+ "wall_seconds": 11.11
 }
 CHECK {"paper": "attention", "holdout": false, "id": "t04", "clean": true, "expected_rules": [], "verdict": "warn", "rules_found": ["R24"], "confidence": 0.65, "evidence_match": ["exact_sentence"], "bbox_precision": ["quote"], "pages": [9], "ok": true, "strict_pass": false, "located": true}
 
@@ -74,7 +74,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.07
+ "seconds": 0.04
 }
 
 
@@ -98,7 +98,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\no_pdf\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.01
+ "seconds": 0.0
 }
 
 
@@ -166,7 +166,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.83
+ "seconds": 0.84
 }
 
 
@@ -234,7 +234,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
   "jsonld_statements": 44,
   "expected": 44,
   "ok": true,
-  "rdflib_trig_quads": 44
+  "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
  },
  "status": "partial",
  "status_reason": {
@@ -258,7 +258,124 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
    ]
   }
  ],
- "seconds": 0.15
+ "seconds": 0.08
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_init.py --case C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\input\case.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\output --work C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\work
+Consider using the pymupdf_layout package for a greatly improved page layout analysis.
+{
+ "case_id": "v02_schema",
+ "pdfs": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\input\\paper.pdf"
+ ],
+ "contract_fields": [
+  "assertions",
+  "nquads",
+  "summary",
+  "unreported"
+ ],
+ "field_kind_suggestions": {
+  "assertions": "assertions",
+  "nquads": "nquads",
+  "summary": "summary",
+  "unreported": "unreported"
+ },
+ "parse_status": [
+  "partial"
+ ],
+ "metadata": [
+  {
+   "title": "Deep Residual Learning for Image Recognition",
+   "authors": [
+    "Kaiming He",
+    "Xiangyu Zhang",
+    "Shaoqing Ren",
+    "Jian Sun"
+   ],
+   "arxiv_id": "1512.03385",
+   "version": "v1",
+   "arxiv_category": "cs.CV",
+   "arxiv_date": "10 Dec 2015",
+   "doi": null,
+   "year": 2015,
+   "venue": "ILSVRC 2015",
+   "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
+   "page_count": 12,
+   "file_name": "paper.pdf"
+  }
+ ],
+ "result": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\output\\result.json",
+ "sentences": [
+  "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\output\\parsed\\paper\\sentences.jsonl"
+ ],
+ "candidates": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\work\\candidates.md",
+ "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\work\\draft.json",
+ "task_file": null,
+ "case_error": null,
+ "seconds": 1.16
+}
+
+
+[exit 0]
+
+$ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_build.py --draft C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\work\draft.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\output --created 2026-11-25T00:00:00Z
+{
+ "n_assertions": 2,
+ "summary": {
+  "n": 2,
+  "pass": 1,
+  "warn": 1,
+  "fail": 0,
+  "rule_counts": {
+   "R10:warn": 1,
+   "R18:warn": 1,
+   "R23:warn": 1
+  }
+ },
+ "export_roundtrip": {
+  "nquads_lines": 108,
+  "nquads_malformed": 0,
+  "jsonld_statements": 108,
+  "expected": 108,
+  "ok": true,
+  "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
+ },
+ "status": "success",
+ "status_reason": {
+  "failing_records": 0,
+  "unfilled_fields": [],
+  "export_ok": true,
+  "image_read_records_need_human_review": []
+ },
+ "records": [
+  {
+   "id": "v1",
+   "verdict": "warn",
+   "confidence": 0.6,
+   "issues": [
+    "R10 warn: number inside a name not found in evidence (may come from elsewhere in the paper) [['152']]",
+    "R18 warn: comparative predicate but no comparison wording in the evidence [outperforms]",
+    "R23 warn: only 29% of the assertion's content words occur in the evidence"
+   ],
+   "evidence": [
+    "exact_sentence p1 p1-b5-s6"
+   ]
+  },
+  {
+   "id": "v2",
+   "verdict": "pass",
+   "confidence": 0.6,
+   "issues": [],
+   "evidence": [
+    "table_cell p6 T3",
+    "table_cell p6 T3"
+   ]
+  }
+ ],
+ "seconds": 0.14
 }
 
 

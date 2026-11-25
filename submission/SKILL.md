@@ -3,18 +3,19 @@ name: nanopub-evidence-builder
 description: Turn claims in a scientific PDF into nanopublications - atomic, individually checkable assertions, each bound to the smallest verbatim evidence (page, block, sentence id, line boxes, or table cell) and to source provenance (title, authors, year, DOI/arXiv id + version, PDF SHA-256). Use when a research-reading task asks to answer questions with evidence, extract or split findings/claims into assertions, bind evidence, check claim quality, or export machine-readable knowledge units (JSON, TriG, N-Quads, JSON-LD). Scripts resolve every quote against the PDF, run 26 reproducible quality rules (compound claim, number not in evidence, dropped hedge/condition, negation mismatch, causal claim without causal wording, cited work presented as own, missing provenance ...) and write result.json with honest status.
 ---
 
-# nanopub-evidence-builder (v0.1.0)
+# nanopub-evidence-builder (v0.2.0)
 
 You write the claims; the scripts make them traceable and check them. Every assertion ends up as a
 nanopublication: **assertion** (one claim, subject–predicate–object + qualifiers), **provenance**
 (verbatim evidence with page/sentence/box, evidence type, source metadata) and **publication info**.
-Plain Python 3 + PyMuPDF. No network. `SKILL_DIR` = the directory of this file (`/skills/weekly-skill`).
+Plain Python 3 + PyMuPDF. No network. `SKILL_DIR` = the directory of this file (`/skills/weekly-skill`, or discover via `ls /skills`).
 
 ## Workflow (about 6–12 model requests; save early)
 
 1. **Init** (seconds):
    ```bash
-   python $SKILL_DIR/scripts/np_init.py --case /input/case.json --out /app/output --work /app/work
+   SKILL_DIR=${SKILL_DIR:-/skills/weekly-skill}
+   python3 $SKILL_DIR/scripts/np_init.py --case /input/case.json --out /app/output --work /app/work
    ```
    Prints contract fields, a suggested `kind` per field, the source metadata found in the PDF, and paths.
    Writes `/app/output/result.json` (valid partial result), `parsed/<stem>/sentences.jsonl`
@@ -23,21 +24,22 @@ Plain Python 3 + PyMuPDF. No network. `SKILL_DIR` = the directory of this file (
    and `/app/work/draft.json` (template).
 2. **Read** `task.md`, `case.json`, then `candidates.md`. To find more:
    ```bash
-   python $SKILL_DIR/scripts/np_find.py /app/output/parsed/<stem> "words from the question" --top 8   # --page N --section Results --regex
-   python $SKILL_DIR/scripts/np_find.py /app/output/parsed/<stem> --id p5-b89-s2 --context 1         # neighbours (coreference)
-   python $SKILL_DIR/scripts/table_query.py /app/output/parsed/<stem> --table "Table 4" --list         # tables: columns + row keys
+   python3 $SKILL_DIR/scripts/np_find.py /app/output/parsed/<stem> "words from the question" --top 8   # --page N --section Results --regex
+   python3 $SKILL_DIR/scripts/np_find.py /app/output/parsed/<stem> --id p5-b89-s2 --context 1         # neighbours (coreference)
+   python3 $SKILL_DIR/scripts/table_query.py /app/output/parsed/<stem> --table "Table 4" --list         # tables: columns + row keys
    ```
 3. **Write `/app/work/draft.json`** (format below). One assertion = one claim that can be true or false on its own.
 4. **Build + check**:
    ```bash
-   python $SKILL_DIR/scripts/np_build.py --draft /app/work/draft.json --out /app/output
+   python3 $SKILL_DIR/scripts/np_build.py --draft /app/work/draft.json --out /app/output
    ```
    Prints per assertion: verdict (`pass` / `warn` / `fail`), extraction confidence, rule hits with the triggering text,
    and how each evidence item matched. Writes `nanopubs.json|.trig|.nq|.jsonld`, `quality_report.json`, `review.md`,
    `evidence_previews/page_NNN.png` (quotes boxed on the page), `evidence_crops/`, and fills `result.json`.
 5. **Fix every `fail`**, then re-run step 4 (ids are content-derived, re-runs are idempotent). Either fix the assertion
    or keep it and explain in `uncertainty`; delete assertions you cannot support. Look at `warn`s: fix, or accept with a reason.
-   Look at one preview PNG to confirm the boxes sit on the right text.
+   Before finishing, verify `/app/output/result.json` has `status: "success"`, zero unfilled `null` `output_contract` fields, and
+   inspect one `evidence_previews/page_NNN.png` to confirm the boxes sit on the right text.
 
 ## draft.json
 
@@ -81,7 +83,7 @@ Plain Python 3 + PyMuPDF. No network. `SKILL_DIR` = the directory of this file (
 - **evidence_type**: `direct` (quote states it) | `inferred` (+ `reasoning`, e.g. comparing two cells) | `cited`.
 - **fields** `kind`: `nanopublications` (full records) | `assertions` (flat list) | `evidence` (flat list with assertion ids) |
   `provenance` (source metadata + where each value was read) | `quality` (rule report) | `relations` (triples) |
-  `trig` / `nquads` / `jsonld` (file path) | or give `value` (+ `from` assertion ids) for answers. Use `"filter": ["a1"]` to restrict.
+  `trig` / `nquads` / `jsonld` / `review` (file path) | `summary` / `unreported` / `conflicts` / `uncertainty` / `status` | or give `value` (+ `from` assertion ids) for answers. Use `"filter": ["a1"]` to restrict.
   If the contract wants a different shape, fill it with `value` built from the same assertions; keep the ids.
 
 ## How to split (拆得细)

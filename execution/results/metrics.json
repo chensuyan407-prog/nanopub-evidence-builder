@@ -43,8 +43,8 @@
  "papers": {
   "resnet": {
    "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
-   "init_seconds": 1.29,
-   "build_seconds": 0.59,
+   "init_seconds": 1.31,
+   "build_seconds": 0.52,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 552,
@@ -52,7 +52,7 @@
     "jsonld_statements": 552,
     "expected": 552,
     "ok": true,
-    "rdflib_trig_quads": 552
+    "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
    "metadata": {
     "title": true,
@@ -86,8 +86,8 @@
   },
   "attention": {
    "pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
-   "init_seconds": 1.02,
-   "build_seconds": 0.63,
+   "init_seconds": 1.16,
+   "build_seconds": 0.56,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 633,
@@ -95,7 +95,7 @@
     "jsonld_statements": 633,
     "expected": 633,
     "ok": true,
-    "rdflib_trig_quads": 633
+    "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
    "metadata": {
     "title": true,
@@ -135,8 +135,8 @@
   },
   "bn": {
    "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
-   "init_seconds": 1.0,
-   "build_seconds": 0.58,
+   "init_seconds": 1.11,
+   "build_seconds": 0.5,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 569,
@@ -144,7 +144,7 @@
     "jsonld_statements": 569,
     "expected": 569,
     "ok": true,
-    "rdflib_trig_quads": 569
+    "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
    "metadata": {
     "title": true,
@@ -180,8 +180,8 @@
   },
   "kaplan_holdout": {
    "pdf_sha256": "a41bd7877fd1a6bcbba096b2619618bd2f90e02488f2365644903eb2f7c6a494",
-   "init_seconds": 3.14,
-   "build_seconds": 0.95,
+   "init_seconds": 3.44,
+   "build_seconds": 0.94,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 665,
@@ -189,7 +189,7 @@
     "jsonld_statements": 665,
     "expected": 665,
     "ok": true,
-    "rdflib_trig_quads": 665
+    "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
    "metadata": {
     "title": true,
@@ -231,7 +231,7 @@
    }
   }
  },
- "wall_seconds": 11.2,
+ "wall_seconds": 11.11,
  "robustness": {
   "encrypted_pdf": {
    "status": "failed",
@@ -260,6 +260,13 @@
      "i1"
     ]
    },
+   "ok": true
+  },
+  "v02_schema_nquads_inferred_r07": {
+   "status": "success",
+   "nquads": "nanopubs.nq",
+   "has_summary": true,
+   "fails": 0,
    "ok": true
   }
  },

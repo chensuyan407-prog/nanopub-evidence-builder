@@ -1,4 +1,4 @@
-# nanopub-evidence-builder 0.1.0 — submission bundle for 阅读14｜Nanopublication
+# nanopub-evidence-builder 0.2.0 — submission bundle for 阅读14｜Nanopublication
 
 Skill that turns the conclusions of a scientific PDF into **nanopublications**: one atomic, checkable assertion
 per record, bound to the smallest verbatim evidence (page, block, sentence id, line boxes or table cell) and to

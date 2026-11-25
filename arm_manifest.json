@@ -19,8 +19,8 @@
  "execution": {
   "log_path": "execution/run.log",
   "exit_code": 0,
-  "ran_at": "2026-11-23T00:26:00.232491Z",
-  "wall_time_s": 13.62,
+  "ran_at": "2026-11-25T06:49:26.531967Z",
+  "wall_time_s": 16.11,
   "ran_by": "agent",
   "artifacts": [
    {
@@ -28,7 +28,7 @@
     "path": "execution/results/metrics.json",
     "type": "metric",
     "format": "json",
-    "checksum_sha256": "240cb53d404fcab345d4a36feccc5b3edddf54947bbbe6317f16b1aff7e92911"
+    "checksum_sha256": "1227b21c14db5f68bc7c21d444d76ba9355a2ef8be1068cbdc73685d03ce4205"
    },
    {
     "id": "eval_rows",
@@ -49,21 +49,21 @@
     "path": "execution/results/cases/resnet/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "7ae66a913973b82cc03a67bd052571caec2563e301c7344e1868936c5eee3d2c"
+    "checksum_sha256": "6f75dc94e3c73d43ae42c16f6db14170bf4c7f9863cf91b2644598ebe57eab7f"
    },
    {
     "id": "resnet_trig",
     "path": "execution/results/cases/resnet/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "d8b502ee913b5c24f49037ee28f1cd32d1b260e95eb52ef659876794a11b459e"
+    "checksum_sha256": "8eec9b0073a71c4a7eeb80fea3b30db70dba26360a89b08de392ebf18573801c"
    },
    {
     "id": "resnet_review",
     "path": "execution/results/cases/resnet/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "a8b37b49e39233727bf18229c54c138173f82148162e64311812d239318f8014"
+    "checksum_sha256": "58f93b716006a977ce20a70dc30ce92c11ec07156481a06251f67dc66f11891f"
    },
    {
     "id": "resnet_preview_page_001",
@@ -84,21 +84,21 @@
     "path": "execution/results/cases/attention/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "c9ec9d00d2df5df567ccc556a641c977074fa3dfcd95b90258fca0270763835a"
+    "checksum_sha256": "b085699093a10e78afae67ea458a41ef4c1c624a0b86a13a5158454d619f6572"
    },
    {
     "id": "attention_trig",
     "path": "execution/results/cases/attention/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "b0ff3827c96f68d86325b5ec5a3e6a59c833cb0de52c5d12319d1928f3ba2932"
+    "checksum_sha256": "58d62845cd36d828b1a00dcd4f566c8c08ec9cedb8505590d301824131f626d7"
    },
    {
     "id": "attention_review",
     "path": "execution/results/cases/attention/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "182e2b9622fb80609a33d7eb36f57024885cc61c5708669f449155ae2c7f7b91"
+    "checksum_sha256": "f6b41d4c39e2234b7f4eaa2d1cc2bf11f77d8056bf1b79011baca990135ce5f5"
    },
    {
     "id": "attention_preview_page_002",
@@ -119,21 +119,21 @@
     "path": "execution/results/cases/bn/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "6285fa82299534cf5778b21917763054ce40124fb8e1bac5905dbcdb00f43df8"
+    "checksum_sha256": "d03e185bb9077aea07cf0f473c0c57c252bcd080dbeccc45b1f452b44e6cbd8a"
    },
    {
     "id": "bn_trig",
     "path": "execution/results/cases/bn/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "1dc74c7932a0ce54944ed6aa9382a0664c162d07122b900821aabe1efef57d75"
+    "checksum_sha256": "8582d1d1e3127fb53803a6b151f22fbcb4e03da1f4e59f9791e83c6c86c47a59"
    },
    {
     "id": "bn_review",
     "path": "execution/results/cases/bn/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "0f14adf320f2f3b0b56e34c7fe443f227f3731c7b06c075f1981abbb1dc71af5"
+    "checksum_sha256": "c570e85a63d2ac27a435aff101417ff4527d0e26b8fe4c4101f4d6a014920990"
    },
    {
     "id": "bn_preview_page_001",
@@ -154,21 +154,21 @@
     "path": "execution/results/cases/kaplan_holdout/output/nanopubs.json",
     "type": "data",
     "format": "json",
-    "checksum_sha256": "aa880c54ee5dc47d166c622373dc78b6e196172f70008d7a67d67c0c1d941575"
+    "checksum_sha256": "9908e462a1d592a1867ad3eb1dfe9ae26d2de2f791af9f104ff3ee8f5b529ddc"
    },
    {
     "id": "kaplan_holdout_trig",
     "path": "execution/results/cases/kaplan_holdout/output/nanopubs.trig",
     "type": "data",
     "format": "other",
-    "checksum_sha256": "a480e8e92f6ffac25604ac3f3987069b323119e18693189720ce8e312385619b"
+    "checksum_sha256": "d885a6710c8d0f1915ee2c43a8e29779d546f729a90493b937a9ed4e9b03e7eb"
    },
    {
     "id": "kaplan_holdout_review",
     "path": "execution/results/cases/kaplan_holdout/output/review.md",
     "type": "data",
     "format": "txt",
-    "checksum_sha256": "55e0e8ef244495bb907cd604c9f2ba9d1e5294f942934459dc8b5414446f1924"
+    "checksum_sha256": "32905d4ec8cbee077a60493820629e06f23e5aaa8e3d36a6207995c9e03a26b0"
    },
    {
     "id": "kaplan_holdout_preview_page_001",
