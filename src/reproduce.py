@@ -159,8 +159,8 @@ def main():
             ("metrics_at_freeze", "execution/results/metrics_at_freeze.json", "metric", "json")]
     for name in ("resnet", "attention", "bn", "kaplan_holdout"):
         o = f"execution/results/cases/{name}/output"
-        arts += [(f"{name}_nanopubs", f"{o}/nanopubs.json", "data", "json"), (f"{name}_trig", f"{o}/nanopubs.trig", "data", "trig"),
-                 (f"{name}_review", f"{o}/review.md", "data", "markdown")]
+        arts += [(f"{name}_nanopubs", f"{o}/nanopubs.json", "data", "json"), (f"{name}_trig", f"{o}/nanopubs.trig", "data", "other"),
+                 (f"{name}_review", f"{o}/review.md", "data", "txt")]
         prev = sorted(os.listdir(os.path.join(ROOT, o, "evidence_previews")))[:2]
         arts += [(f"{name}_preview_{p[:-4]}", f"{o}/evidence_previews/{p}", "figure", "png") for p in prev]
     manifest = {
