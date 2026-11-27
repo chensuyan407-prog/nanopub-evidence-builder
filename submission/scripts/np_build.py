@@ -411,8 +411,35 @@ def slot(x, kind=None):
     return {"label": x or "", "type": kind}
 
 
+_MODALITY_ALIASES = {"hedge": "hedged", "uncertain": "hedged", "negate": "negated", "negative": "negated", "fact": "asserted"}
+_SCOPE_ALIASES = {"own": "this_work", "own_work": "this_work", "cited": "cited_work", "prior_work": "cited_work"}
+_EVTYPE_ALIASES = {"quote": "direct", "table": "direct", "computed": "inferred", "derived": "inferred"}
+
+
+def _norm_enum(val, valid, aliases=None):
+    if not isinstance(val, str):
+        return val
+    s = re.sub(r"[\s\-]+", "_", val.strip().lower())
+    if aliases and s in aliases:
+        s = aliases[s]
+    return s if s in valid else val
+
+
+def _norm_predicate(pred, vocab):
+    if not isinstance(pred, str):
+        return pred
+    preds = vocab.get("predicates") or {}
+    if pred in preds:
+        return pred
+    s = re.sub(r"[\s\-]+", "_", pred.strip().lower())
+    return s if s in preds else pred
+
+
 def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
-    pred = a.get("predicate")
+    pred = _norm_predicate(a.get("predicate"), vocab)
+    modality = _norm_enum(a.get("modality") or "asserted", {"asserted", "hedged", "negated", "hypothesis"}, _MODALITY_ALIASES)
+    scope = _norm_enum(a.get("scope") or "this_work", {"this_work", "cited_work", "background"}, _SCOPE_ALIASES)
+    ev_type = _norm_enum(a.get("evidence_type") or "direct", {"direct", "inferred", "cited"}, _EVTYPE_ALIASES)
     pinfo = vocab["predicates"].get(pred, {})
     raw_q = a.get("qualifiers")
     quals = {str(k): v for k, v in raw_q.items() if v not in (None, "", [], {})} if isinstance(raw_q, dict) else {}
@@ -448,12 +475,12 @@ def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
                                         "polarity": pinfo.get("polarity"), "iri": vocab["namespace"] + (pred or "unknown")},
             "object": o,
             "qualifiers": quals,
-            "modality": a.get("modality") or "asserted",
-            "scope": a.get("scope") or "this_work",
+            "modality": modality,
+            "scope": scope,
             "cited_reference": cited, "cited_reference_resolved": cited_res,
         },
-        "evidence_type": a.get("evidence_type") or "direct",
-        "eco": dict(zip(("code", "label"), eco_code(a.get("evidence_type") or "direct", a.get("scope") or "this_work", pinfo.get("relation_type")))),
+        "evidence_type": ev_type,
+        "eco": dict(zip(("code", "label"), eco_code(ev_type, scope, pinfo.get("relation_type")))),
         "reasoning": a.get("reasoning"),
         "derived_from": a.get("derived_from"),
         "evidence": ev,
@@ -742,14 +769,20 @@ def render_crops(src, records, outdir, max_n=60, dpi=150):
 # ------------------------------------------------------------------ result.json
 def flat_assertion(r):
     a = r["assertion"]
-    return {"assertion_id": a["id"], "np_id": r["np_id"], "text": a["text"], "subject": a["subject"]["label"],
+    unit = (a.get("qualifiers") or {}).get("unit")
+    return {"assertion_id": a["id"], "np_id": r["np_id"], "identifier": r.get("identifier"),
+            "text": a["text"], "subject": a["subject"]["label"],
             "predicate": a["predicate"]["id"], "relation_type": a["predicate"]["relation_type"], "object": a["object"]["label"],
             "qualifiers": a["qualifiers"], "modality": a["modality"], "scope": a["scope"], "evidence_type": r["evidence_type"],
             "evidence_ids": [e["evidence_id"] for e in r["evidence"]],
-            "evidence": [{"evidence_id": e["evidence_id"], "role": e.get("role"), "quote": e.get("quote"), "page": e.get("page"),
-                          "block_id": e.get("block_id"), "sentence_id": e.get("sentence_id"), "bbox": e.get("bbox"), "match": e.get("match")}
-                         for e in r["evidence"]],
-            "confidence": r["confidence"]["score"], "verdict": r["quality"]["verdict"],
+            "evidence": [{k: v for k, v in {
+                "evidence_id": e["evidence_id"], "role": e.get("role"), "quote": e.get("quote"), "page": e.get("page"),
+                "block_id": e.get("block_id"), "sentence_id": e.get("sentence_id"), "bbox": e.get("bbox"),
+                "table": e.get("table"), "row": e.get("row"), "column": e.get("column"),
+                "unit": unit, "match": e.get("match"),
+            }.items() if v not in (None, "", [], {})} for e in r["evidence"]],
+            "confidence": r["confidence"]["score"], "confidence_basis": r.get("confidence_basis"),
+            "verdict": r["quality"]["verdict"],
             "issues": [f"{i['rule']}:{i['severity']}" for i in r["quality"]["issues"]]}
 
 
@@ -832,7 +865,7 @@ def load_draft(path, out):
     if "assertions" in draft and not isinstance(draft["assertions"], list):
         refuse(out, f"draft.assertions must be a list, got {type(draft['assertions']).__name__}")
     if "fields" in draft and not isinstance(draft["fields"], dict):
-        refuse(a.out, f"draft.fields must be an object mapping contract field -> spec, got {type(draft['fields']).__name__}")
+        refuse(out, f"draft.fields must be an object mapping contract field -> spec, got {type(draft['fields']).__name__}")
     for rk in draft.get("fields") or {}:
         if rk in RESERVED_FIELDS:
             refuse(out, f"draft.fields cannot overwrite reserved runtime key {rk!r}")
@@ -985,7 +1018,35 @@ def main():
             r["np_id"] = f"{r['np_id']}-{n}"
             r["uri"] = TEMP + r["np_id"]
     qrep = np_check.check_all(records, vocab)
+    weak_uncertainty = []
     for r in records:
+        src_md = r["provenance"]["source"]
+        ident = {"nanopub_uri": r["uri"]}
+        for ik in ("doi", "arxiv_id"):
+            iv = (src_md.get(ik) or {}).get("value") if isinstance(src_md.get(ik), dict) else src_md.get(ik)
+            if iv:
+                ident[ik] = iv
+        if r["provenance"].get("source_iri"):
+            ident["source_iri"] = r["provenance"]["source_iri"]
+        r["identifier"] = ident
+        sup_matches = [e.get("match") for e in r["evidence"] if e.get("role", "support") == "support"]
+        warns = [i["rule"] for i in r["quality"]["issues"] if i["severity"] == "warn"]
+        fails = [i["rule"] for i in r["quality"]["issues"] if i["severity"] == "fail"]
+        basis = f"{r['evidence_type']} evidence, match={sup_matches or ['none']}, {len(warns)} warn(s)"
+        if warns:
+            basis += f" ({', '.join(warns)})"
+        if fails:
+            basis += f", {len(fails)} fail(s) ({', '.join(fails)})"
+        basis += f" -> confidence {r['confidence']['score']}"
+        r["confidence_basis"] = basis
+        if r["quality"]["verdict"] == "warn" or r["confidence"]["score"] < 0.7:
+            weak_uncertainty.append({
+                "assertion_id": r["assertion"]["id"],
+                "confidence": r["confidence"]["score"],
+                "confidence_basis": basis,
+                "rules": warns + fails,
+                "issue": "weak or warned assertion retained with uncertainty note",
+            })
         r["content_hash"] = "sha256:" + C.short_hash(json.dumps({k: r[k] for k in ("assertion", "evidence_type", "reasoning")}, sort_keys=True, ensure_ascii=False),
                                                       json.dumps([(e.get("quote"), e.get("page")) for e in r["evidence"]], ensure_ascii=False), n=64)
     if not a.no_previews:
@@ -1026,7 +1087,7 @@ def main():
     keep = lambda k: [x for x in (res.get(k) or []) if isinstance(x, dict) and x.get("origin") == "np_init"]
     conflicts = _union(keep("conflicts"), draft.get("conflicts"))
     conflicts += [{"type": "metadata_override", **o} for s in srcs.values() for o in s.overrides_log if o.get("from") not in (None, o.get("to"))]
-    uncertainty = _union(keep("uncertainty"), draft.get("uncertainty")) + notes
+    uncertainty = _union(keep("uncertainty"), draft.get("uncertainty")) + notes + weak_uncertainty
     uncertainty += [{"assertion": e["id"], "index": e["index"], "issue": "assertion could not be built: " + e["error"]} for e in build_errors]
     views = {"nanopublications": records, "assertions": [flat_assertion(r) for r in records],
              "evidence": flat_evidence(records), "provenance": provenance_view(src, list(srcs.values())), "quality": qrep,

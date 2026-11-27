@@ -378,13 +378,44 @@ def _run_init(a):
         fh.write("\n".join(cand_lines) + "\n")
     draft_path = os.path.join(a.work, "draft.json")
     primary = next((s for s in sources if s.get("parse_status") != "failed"), sources[0] if sources else None)
+    pre_draft = []
+    if primary and primary.get("parsed_dir"):
+        sp = os.path.join(primary["parsed_dir"], "sentences.jsonl")
+        if os.path.exists(sp):
+            try:
+                with open(sp, encoding="utf-8") as sfh:
+                    for line in sfh:
+                        if len(pre_draft) >= 5:
+                            break
+                        if not line.strip():
+                            continue
+                        row = json.loads(line)
+                        cues = row.get("cues") or []
+                        if any(c in cues for c in ("num", "cmp", "cause", "mag")):
+                            pre_draft.append({
+                                "id": f"draft_{len(pre_draft)+1}",
+                                "text": row.get("text", ""),
+                                "subject": "<entity>",
+                                "predicate": "has_value" if "num" in cues else ("outperforms" if "cmp" in cues else "associated_with"),
+                                "object": "<target>",
+                                "modality": "hedged" if "hedge" in cues else "asserted",
+                                "scope": "cited_work" if "cite" in cues else "this_work",
+                                "evidence_type": "direct",
+                                "evidence": [row.get("id")],
+                            })
+            except Exception:
+                pass
     if not os.path.exists(draft_path):
         C.dump_json({
-            "_help": "Fill 'assertions' (one atomic claim each) and 'fields'. Evidence = sentence ids from sentences.jsonl "
-                     "or {page, quote}. Then: $PY $SKILL_DIR/scripts/np_build.py --draft WORK/draft.json --out OUT. See SKILL.md.",
+            "_help": "Fill 'assertions' (one atomic claim each; you can copy/edit from '_pre_draft_assertions') and 'fields'. "
+                     "Evidence = sentence ids from sentences.jsonl or {page, quote}. Then: $PY $SKILL_DIR/scripts/np_build.py --draft WORK/draft.json --out OUT. See SKILL.md.",
+            "case_id": case_id,
+            "required_questions": result["output_contract_spec"]["required"],
+            "optional_questions": result["output_contract_spec"]["optional"],
             "source": primary["stem"] if primary else None,
             "source_overrides": {},
             "assertions": [],
+            "_pre_draft_assertions": pre_draft,
             "fields": {f: {"kind": k} for f, k in suggestions.items()},
             "unreported": [], "conflicts": [], "uncertainty": []}, draft_path)
     print(json.dumps({"case_id": case_id, "materials": [{"file": s["file"], "role": s["role"], "stem": s["stem"], "format": s["format"]} for s in sources],
