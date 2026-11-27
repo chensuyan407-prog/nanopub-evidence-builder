@@ -133,7 +133,7 @@ def num_in(num, ev_cores, ev_text_norm):
     core = C.num_core(num)
     if core in ev_cores:
         return True
-    return re.search(r"(?<![\d.])" + re.escape(num.replace(",", "").rstrip("%x×")) + r"(?![\d])", ev_text_norm.replace(",", "")) is not None
+    return re.search(r"(?<![\d.+-])" + re.escape(num.replace(",", "").rstrip("%x×")) + r"(?!\d|[.,]\d)", ev_text_norm.replace(",", "")) is not None
 
 
 _LOC_NUM = re.compile(r"(?:table|tab\.|fig(?:ure)?\.?|eq\.?|equation|sec(?:tion)?\.?|row|column|col\.|page|p\.|appendix|表|图|式)\s*\(?[A-Za-z]?\d+", re.I)
@@ -226,6 +226,47 @@ def check_reasoning(reasoning, ev_text, ev=None):
     return out
 
 
+# Units that can be unambiguously recognized next to a measured number.
+_UNIT_FORMS = {
+    "%": r"%|percent(?:age)?(?!\s+points?)|百分之",
+    "pp": r"percentage\s+points?|percent\s+points?|pp|百分点",
+    "points": r"points?",
+    "ms": r"ms|milliseconds?",
+    "s": r"s|seconds?|sec",
+    "min": r"min|minutes?",
+    "h": r"h|hours?|hr",
+    "mg": r"mg|milligrams?",
+    "g": r"g|grams?",
+    "kg": r"kg|kilograms?",
+    "mm": r"mm|millimeters?|millimetres?",
+    "cm": r"cm|centimeters?|centimetres?",
+    "m": r"m|meters?|metres?",
+    "km": r"km|kilometers?|kilometres?",
+    "µg": r"[µμu]g|micrograms?",
+    "ng": r"ng|nanograms?",
+    "µm": r"[µμu]m|micrometers?|micrometres?",
+    "nm": r"nm|nanometers?|nanometres?",
+    "mg/L": r"mg\s*/\s*l",
+    "mmHg": r"mm\s*hg",
+    "Hz": r"hz|hertz",
+    "kHz": r"khz|kilohertz",
+    "MHz": r"mhz|megahertz",
+    "°C": r"°\s*c|degrees?\s+celsius",
+    "x": r"[x×]|fold|times",
+}
+_UNIT_PATTERNS = {k: re.compile(r"^(?:" + v + r")(?![\w/])", re.I) for k, v in _UNIT_FORMS.items()}
+_MEASURE = re.compile(r"(?<![\w.])([-+]?\d+(?:[.,]\d+)*)(?![\d.])")
+
+
+def measured_units(text):
+    text = C.norm(text, lower=False)
+    for number in _MEASURE.finditer(text):
+        tail = text[number.end():].lstrip(" -")
+        unit = next((k for k, rx in _UNIT_PATTERNS.items() if rx.match(tail)), None)
+        if unit:
+            yield C.num_core(number[1]), unit
+
+
 def check_record(np_rec, vocab, all_keys=None, references=None):
     out = []
     a = np_rec.get("assertion", {})
@@ -257,7 +298,7 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
             out.append(issue("R04", "fail", f"quote not found in the PDF text layer (cited page {e.get('cited_page')})", e.get("quote", "")[:160],
                              "copy the quote verbatim from sentences.jsonl, or cite the sentence id"))
         elif m in ("fuzzy",):
-            out.append(issue("R05", "warn", f"quote matched only approximately (similarity {e.get('similarity')})", e.get("quote", "")[:160], "use the exact sentence text"))
+            out.append(issue("R05", "fail", f"quote matched only approximately (similarity {e.get('similarity')})", e.get("quote", "")[:160], "use the exact sentence text"))
         if e.get("page_corrected_from") is not None:
             out.append(issue("R05", "warn", f"quote cited on page {e['page_corrected_from']} but found on page {e.get('page')}; page corrected", e.get("quote", "")[:80]))
         if e.get("kind") == "image_region":
@@ -297,20 +338,46 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
             out.append(issue("R08", "warn", f"{slot} may contain several entities", val,
                              "if the claim holds for each entity separately, make one assertion per entity"))
     # numbers
-    ev_text = " ".join((e.get("quote") or "") + " " + (e.get("transcription") or "") + " " + (e.get("table_context") or "") for e in ev)
+    def fragment(e):
+        return e.get("quote") or e.get("transcription") or ""
+
+    raw_measures = " ".join(fragment(e) for e in support)
+    ev_text = " ".join(fragment(e) + " " + (e.get("table_context") or "") for e in ev)
+    numeric_text = raw_measures
     if (np_rec.get("evidence_type") == "inferred") and (np_rec.get("reasoning") or "").strip():
         rsn = np_rec["reasoning"]
-        if C.numbers(ev_text):
-            ev_text = ev_text + " " + rsn
-    ev_norm = C.norm(ev_text, lower=False)
-    ev_cores = {C.num_core(n) for n in C.numbers(ev_text)}
+        if C.numbers(raw_measures):
+            numeric_text += " " + rsn
+    ev_norm = C.norm(numeric_text, lower=False)
+    ev_cores = {C.num_core(n) for n in C.numbers(numeric_text)}
     qual_text = " ".join(str(v) for k, v in quals.items() if k not in ("condition", "note") and v not in (None, ""))
     if quals.get("value") not in (None, "") and quals.get("unit") not in (None, ""):
         qual_text += f" {quals['value']} {quals['unit']}"
-    vals, ids = value_numbers(text + " " + qual_text)
-    raw_ev = " ".join((e.get("quote") or "") + " " + (e.get("transcription") or "") + " " + (e.get("table_context") or "") for e in ev)
-    ev_mag = [m[2] for m in C.magnitudes(raw_ev)]
-    ev_mag_all = ev_mag + C.plain_values(raw_ev)
+    vals, ids = value_numbers(_LOC_NUM.sub(" ", text) + " " + qual_text)
+    ev_mag = [m[2] for m in C.magnitudes(raw_measures)]
+    ev_mag_all = ev_mag + C.plain_values(raw_measures)
+    if np_rec.get("evidence_type") != "inferred":
+        pairs = set(measured_units(text))
+        val, unit = quals.get("value"), quals.get("unit")
+        if val not in (None, "") and unit:
+            pairs.update(measured_units(f"{val} {unit}"))
+        supplied = set()
+        for e in support:
+            quote = fragment(e)
+            supplied.update(measured_units(quote))
+            if e.get("kind") == "table_cell":
+                headers = " ".join(e.get("column_path") or [])
+                caption = e.get("table_caption") or ""
+                def labeled_units(label):
+                    return {u for u, form in _UNIT_FORMS.items()
+                            if re.search(r"[\[(]\s*(?:" + form + r")\s*[\])]", label, re.I)}
+
+                units = labeled_units(headers) or ({"%"} if "%" in headers else labeled_units(caption))
+                supplied.update((C.num_core(n.group(1)), u) for n in _MEASURE.finditer(quote) for u in units)
+        mismatched = sorted(pairs - supplied)
+        if mismatched:
+            out.append(issue("R09", "fail", "value and unit are not bound together in the supporting sentence or table cell",
+                             mismatched, "cite the printed measurement and its unit, including the table column header"))
     a_mag = C.magnitudes(text + " " + qual_text)
     by_scale = {mant for (_, mant, v) in a_mag if C.same_magnitude(mant, v, ev_mag_all)}
     scale_ok = {C.num_core(x) for x in by_scale}
@@ -323,7 +390,9 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
     if wrong_scale:
         out.append(issue("R27", "fail", "number has another magnitude than in the evidence (thousand / million / billion / 万 / 亿 / 10^n)",
                          wrong_scale, "copy the magnitude as printed, or convert exactly (6 billion = 60 亿 = 6x10^9)"))
-    miss_id = sorted({n for n in ids if not num_in(n, ev_cores, ev_norm)} - set(miss))
+    named_cores = {C.num_core(x) for x in C.numbers(ev_text)}
+    named_norm = C.norm(ev_text, lower=False)
+    miss_id = sorted({n for n in ids if not num_in(n, named_cores, named_norm)} - set(miss))
     if miss_id:
         out.append(issue("R10", "warn", "number inside a name not found in evidence (may come from elsewhere in the paper)", miss_id,
                          "add a role=context evidence item that defines it, or drop it"))
@@ -403,16 +472,19 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
     if et == "direct" and support:
         aw = {stem(w) for w in words(text)}
         if aw:
-            frac = len(aw & {stem(w) for w in words(ev_text)}) / len(aw)
+            support_words = {stem(w) for e in support for w in words(fragment(e) + " " + (e.get("table_context") or ""))}
+            frac = len(aw & support_words) / len(aw)
             if frac < 0.3:
-                out.append(issue("R23", "warn", f"only {frac:.0%} of the assertion's content words occur in the evidence", None,
+                same_script = bool(re.search(r"[一-鿿]", text)) == bool(re.search(r"[一-鿿]", sup_text))
+                severity = "fail" if frac == 0 and len(aw) >= 3 and support_words and same_script else "warn"
+                out.append(issue("R23", severity, f"only {frac:.0%} of the assertion's content words occur in the evidence", None,
                                  "if the claim is your inference set evidence_type=inferred + reasoning"))
     if et == "inferred" and (np_rec.get("reasoning") or "").strip():
-        out += check_reasoning(np_rec["reasoning"], raw_ev, ev)
+        out += check_reasoning(np_rec["reasoning"], raw_measures, support)
     # same-value statistical metric swap (e.g. HR 1.5 vs OR 1.5)
     _METRIC_ABBR = re.compile(r"\b(HR|OR|RR|AUC|F1|BLEU|RMSE|MAE|MSE|R2)\b")
     a_metrics = set(_METRIC_ABBR.findall(text + " " + str(quals.get("metric") or "")))
-    e_metrics = set(_METRIC_ABBR.findall(raw_ev))
+    e_metrics = set(_METRIC_ABBR.findall(" ".join(fragment(e) + " " + " ".join(e.get("column_path") or []) for e in support)))
     if a_metrics and e_metrics and not (a_metrics & e_metrics):
         out.append(issue("R09", "fail", f"metric mismatch between assertion ({sorted(a_metrics)}) and evidence ({sorted(e_metrics)})",
                          {"assertion": sorted(a_metrics), "evidence": sorted(e_metrics)},
@@ -427,7 +499,7 @@ def check_record(np_rec, vocab, all_keys=None, references=None):
             lack = [k for k, ok in (("crop", e.get("crop")), ("provenance.source_pdf_sha256", (e.get("provenance") or {}).get("source_pdf_sha256")),
                                     ("transcription", (e.get("transcription") or "").strip())) if not ok]
             if lack:
-                out.append(issue("R30", "warn", "image_region evidence is not fully reproducible", lack,
+                out.append(issue("R30", "fail", "image_region evidence is not fully reproducible", lack,
                                  "use crop_region.py output (crop + provenance) and write what you read in transcription"))
     figs = set(re.findall(r"(?:\bfig(?:ure)?\.?\s*|图\s*)(\d+)", C.norm(text)))
     if figs:

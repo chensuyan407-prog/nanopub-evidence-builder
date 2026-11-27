@@ -34,6 +34,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import np_common as C  # noqa: E402
 import np_contract as K  # noqa: E402
+import np_find as F  # noqa: E402
 import parse_pdf  # noqa: E402
 import text_source  # noqa: E402
 
@@ -121,13 +122,14 @@ def discover_materials(case, case_path, bases, extra):
     if not found:
         for b in bases[:2]:
             for p in sorted(glob.glob(os.path.join(glob.escape(b), "**", "*.pdf"), recursive=True)):
-                if os.path.abspath(p) not in seen and "/output/" not in p.replace("\\", "/") and "/work/" not in p.replace("\\", "/"):
+                folders = os.path.relpath(p, b).replace("\\", "/").split("/")[:-1]
+                if os.path.abspath(p) not in seen and not {"output", "work"}.intersection(folders):
                     seen.add(os.path.abspath(p))
                     found.append({"file": p, "role": _role_of(os.path.basename(p)) or "unlabelled", "named_in": "glob"})
             for ext in text_source.TEXT_EXT:
                 for p in sorted(glob.glob(os.path.join(glob.escape(b), "**", "*" + ext), recursive=True)):
                     if NOT_PAPER.search(p.replace("\\", "/")) or os.path.abspath(p) in seen or os.path.abspath(p) == os.path.abspath(case_path) \
-                            or "/output/" in p.replace("\\", "/") or "/work/" in p.replace("\\", "/"):
+                            or {"output", "work"}.intersection(os.path.relpath(p, b).replace("\\", "/").split("/")[:-1]):
                         continue
                     seen.add(os.path.abspath(p))
                     found.append({"file": p, "role": _role_of(os.path.basename(p)) or "unlabelled", "named_in": "glob"})
@@ -135,7 +137,9 @@ def discover_materials(case, case_path, bases, extra):
     found.sort(key=lambda m: rank.get(m["role"], 1))  # stable: keeps case.json order inside a role
     if found and not any(m["role"] == "primary" for m in found):
         first = next((m for m in found if m["role"] == "unlabelled"), found[0])
-        first["role_inferred"] = "primary (first non-supplement material)"
+        if first["role"] == "unlabelled":
+            first["role"] = "primary"
+            first["role_inferred"] = "primary (first non-supplement material)"
     return found
 
 
@@ -247,6 +251,54 @@ def main():
         raise
 
 
+def required_questions(case, task_path, spec):
+    questions = []
+
+    def add(prompt, field=None):
+        if not isinstance(prompt, str) or not prompt.strip():
+            return
+        prompt = prompt.strip()
+        prior = next((q for q in questions if C.norm(q["question"]) == C.norm(prompt)), None)
+        if prior is None:
+            questions.append({"question": prompt, "field": field})
+        elif field and not prior["field"]:
+            prior["field"] = field
+
+    def read_questions(value, field=None):
+        if isinstance(value, str):
+            add(value, field)
+        elif isinstance(value, list):
+            for entry in value:
+                read_questions(entry, field)
+        elif isinstance(value, dict) and value.get("required") is not False:
+            prompt = next((value[k] for k in ("question", "prompt", "text", "description") if isinstance(value.get(k), str)), None)
+            if prompt:
+                add(prompt, value.get("output_field") or value.get("field") or field)
+            else:
+                for key, entry in value.items():
+                    read_questions(entry, key)
+
+    for block in [case] + [case[k] for k in ("task", "input", "instructions") if isinstance(case.get(k), dict)]:
+        for key in ("required_questions", "must_answer", "questions", "research_questions", "question"):
+            read_questions(block.get(key))
+    if task_path and os.path.isfile(task_path):
+        with open(task_path, encoding="utf-8-sig") as fh:
+            in_questions = False
+            for line in fh:
+                line = line.strip()
+                heading = re.match(r"^#{1,6}\s+(.+)", line)
+                if heading:
+                    in_questions = bool(re.search(r"questions?|must.answer|必答|问题", heading[1], re.I))
+                item = re.match(r"^(?:[-*+]\s+|\d+[.)、]\s*|Q\d+\s*[:.)]\s*)(.+)", line, re.I)
+                prompt = (item[1] if item else heading[1] if heading else line).strip("* ")
+                if prompt.endswith(("?", "？")) or (in_questions and item):
+                    add(prompt)
+    for f in spec["fields"]:
+        if f["required"] and f.get("suggested_kind") == "agent_value" and not any(q["field"] == f["name"] for q in questions):
+            add(f.get("description") or f["name"].replace("_", " "), f["name"])
+    return questions
+
+
 def _run_init(a):
     t0 = time.time()
     case, case_err = {}, None
@@ -265,6 +317,7 @@ def _run_init(a):
     bases = [case_dir, "/input", os.getcwd()]
     materials = discover_materials(case, os.path.abspath(a.case), bases, list(a.pdf))
     sources, change_log, cand_lines, used = [], [], [], set()
+    fragments = []
     for m in materials:
         src, r, pdir, stem, is_pdf = parse_material(m, a.out, a.work, used, a)
         docp = os.path.join(pdir, "doc.json")
@@ -275,6 +328,7 @@ def _run_init(a):
                                                                      "named_in": m.get("named_in")}, "confidence": "high"}
             C.dump_json(md, os.path.join(pdir, "source_metadata.json"))
             sents = C.build_sentence_index(doc)
+            fragments.extend({**f, "stem": stem, "role": src["role"]} for f in F.fragments(sents, doc))
             with open(os.path.join(pdir, "sentences.jsonl"), "w", encoding="utf-8") as fh:
                 for s in sents:
                     fh.write(json.dumps(s, ensure_ascii=False) + "\n")
@@ -323,6 +377,24 @@ def _run_init(a):
                    for f in spec["fields"] if f["name"] != "case_id"}
     for f in spec["fields"]:
         f["suggested_kind"] = suggestions.get(f["name"])
+    questions = required_questions(case, task_path, spec)
+    materials_index = [{k: s[k] for k in ("file", "role", "stem", "format", "parsed_dir", "parse_status")} for s in sources]
+    field_template = {f: {"kind": k} if k != "agent_value" else {"kind": k, "value": None, "from": []}
+                      for f, k in suggestions.items()}
+    template = {f: None for f in fields}
+    template["case_id"] = case_id
+    question_index = [{"id": f"q{i}", **q} for i, q in enumerate(questions, 1)]
+    lines = ["# Required questions and targeted evidence candidates", "",
+             "Read the original task for coverage. Verify candidate fragments before citing them.", "", "## Materials"]
+    lines.extend(f"- {s['stem']} [{s['role']}] {s['parse_status']}: {s['file']} → {s['parsed_dir']}" for s in materials_index)
+    for q in question_index:
+        field = f" → `{q['field']}`" if q["field"] else ""
+        lines.append(f"\n## {q['id']}{field} · {q['question']}")
+        hits = F.rank(fragments, q["question"], 5)
+        lines.extend(f"- {F.describe(f)[:460]}" for f in hits)
+        if not hits:
+            lines.append("- No lexical match. Search using the paper's terms or inspect the source.")
+    cand_lines = lines + ["", "# General claim candidates", ""] + cand_lines
     result.update({
         "status": "pending_agent_fill",
         "nanopublications": result.get("nanopublications") if "nanopublications" in fields else [],
@@ -385,9 +457,11 @@ def _run_init(a):
             "source": primary["stem"] if primary else None,
             "source_overrides": {},
             "assertions": [],
-            "fields": {f: {"kind": k} for f, k in suggestions.items()},
+            "fields": field_template,
             "unreported": [], "conflicts": [], "uncertainty": []}, draft_path)
-    print(json.dumps({"case_id": case_id, "materials": [{"file": s["file"], "role": s["role"], "stem": s["stem"], "format": s["format"]} for s in sources],
+    print(json.dumps({"case_id": case_id, "materials": materials_index,
+                      "required_questions": question_index, "output_contract_template": template,
+                      "draft_fields_template": field_template,
                       "primary_source": primary["stem"] if primary else None,
                       "contract_fields": fields, "required_fields": result["output_contract_spec"]["required"],
                       "optional_fields": result["output_contract_spec"]["optional"],

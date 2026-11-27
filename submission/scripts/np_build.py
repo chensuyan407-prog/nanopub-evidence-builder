@@ -9,7 +9,7 @@ Usage:
 
 Safety (v0.3): a draft that is not valid JSON, has no assertion list, or names no usable source never touches
 OUT/result.json (the error goes to OUT/build_error.json, exit code 2). One malformed assertion does not stop the
-build: it is listed in result.json.build_errors and the status becomes partial. A build that would replace a
+build: it is listed in result.json.build_errors while valid records proceed. A build that would replace a
 result holding N built records with fewer (e.g. the empty template) is refused (exit 3) unless --allow-shrink or
 --merge. Every build first copies the previous result.json to OUT/result.prev.json.
 --merge: the draft is merged onto the last successfully built draft (OUT/draft.built.json) by assertion id
@@ -277,7 +277,7 @@ def resolve_text(src, item, field_role):
             d = src.fitz_doc()
             pages = ([cited_page] if cited_page else []) + (list(range(1, d.page_count + 1)) if d else [])
             for pg in pages:
-                if C.norm_loose(quote) and C.norm_loose(quote) in C.norm_loose(src.page_text(pg)):
+                if C.norm(quote) and C.norm(quote) in C.norm(src.page_text(pg)):
                     s = {"id": None, "page": pg, "block_id": None, "blocks": None, "section_path": None, "text": quote, "pages": [pg]}
                     rec.update({"match": "exact_page_text", "quote": quote,
                                 "note": "found in the raw page text, not in a body sentence (caption/table/margin?)"})
@@ -352,7 +352,7 @@ def resolve_table(src, item, role):
         return rec
     val = r.get("value")
     given = item.get("value")
-    rec.update({"match": "table_cell" if (not given or C.norm(given) == C.norm(val) or C.norm_loose(given) == C.norm_loose(val)) else "not_found",
+    rec.update({"match": "table_cell" if (not given or C.norm(str(given)) == C.norm(val)) else "not_found",
                 "quote": val, "value_pretty": r.get("value_pretty"), "page": r.get("page"), "pages": [r.get("page")],
                 "bbox": r.get("cell_bbox"), "bbox_page": r.get("page"), "bbox_precision": "table_cell",
                 "table_id": r.get("table_id"), "column_path": r.get("column_path"), "row_key": r.get("row_key"),
@@ -362,6 +362,8 @@ def resolve_table(src, item, role):
                 "citations": []})
     if rec["match"] == "not_found":
         rec["error"] = f"given value {given!r} != parsed cell {val!r}"
+    if item.get("page") is not None and item["page"] != rec["page"]:
+        rec.update(match="not_found", error=f"cited page {item['page']} != cell page {rec['page']}")
     if r.get("footnote_marker"):
         rec["footnote_marker"] = r["footnote_marker"]
     return rec
@@ -623,6 +625,9 @@ def to_quads(rec, vocab):
         for key, pk in (("block_id", "blockId"), ("sentence_id", "sentenceId"), ("table_id", "tableId")):
             if e.get(key):
                 add(ev, T + pk, lit(e[key]), P)
+        if e.get("kind") == "table_cell":
+            add(ev, T + "rowKey", lit(json.dumps(e.get("row_key") or e["row"], ensure_ascii=False, sort_keys=True)), P)
+            add(ev, T + "columnPath", lit(" / ".join(e.get("column_path") or [e["column"]])), P)
         if e.get("bbox"):
             add(ev, T + "bbox", lit(",".join(str(x) for x in e["bbox"])), P)
     srcd = rec["provenance"]["source"]
@@ -849,7 +854,7 @@ def now_iso():
 
 RESERVED_FIELDS = {"case_id", "sources", "field_status", "field_evidence", "field_problems", "output_contract_spec",
                    "run_status", "change_log", "status_reason", "build_errors", "exports", "export_roundtrip",
-                   "quality_summary", "source_metadata", "quarantined_assertions", "run_warnings"}
+                   "quality_summary", "source_metadata", "quarantined_assertions", "run_warnings", "field_review"}
 _KIND_TYPES = {
     "nanopublications": {"array"}, "assertions": {"array"}, "evidence": {"array"},
     "relations": {"array"}, "unreported": {"array"}, "conflicts": {"array"}, "uncertainty": {"array"},
@@ -895,6 +900,8 @@ def load_draft(path, out):
     for rk in draft.get("fields") or {}:
         if rk in RESERVED_FIELDS:
             refuse(out, f"draft.fields cannot overwrite reserved runtime key {rk!r}")
+    if "source" in draft and draft["source"] is not None and (not isinstance(draft["source"], str) or not draft["source"].strip()):
+        refuse(out, "draft.source must be a nonempty parsed source stem")
     draft.setdefault("assertions", [])
     return draft
 
@@ -972,8 +979,7 @@ def main():
     notes = []
     created = a.created or os.environ.get("NP_CREATED") or now_iso()
     if not DT_RE.match(str(created)):
-        notes.append({"issue": f"--created {created!r} is not an xsd:dateTime; current time used"})
-        created = now_iso()
+        refuse(a.out, f"--created {created!r} is not an xsd:dateTime")
     rp = os.path.join(a.out, "result.json")
     prev = None
     if os.path.exists(rp):
@@ -991,11 +997,11 @@ def main():
     if not pdir:
         want = draft.get("source")
         pdir = next((d for d in dirs if os.path.basename(d) == want), None)
+        if pdir is None and want:
+            refuse(a.out, f"draft.source {want!r} is not one of the parsed sources: {[os.path.basename(d) for d in dirs]}")
         if pdir is None:
             order = [s.get("parsed_dir") for s in (prev or {}).get("sources") or [] if s.get("parse_status") != "failed"]
             pdir = next((d for d in order if d and os.path.exists(os.path.join(d, "doc.json"))), None) or (dirs[0] if len(dirs) == 1 else None)
-            if pdir and want:
-                notes.append({"issue": f"draft.source {want!r} is not a parsed source; used {os.path.basename(pdir)} (primary)"})
     if not pdir:
         refuse(a.out, f"cannot choose a parsed source; set draft.source to one of {[os.path.basename(d) for d in dirs]} or pass --parsed")
     try:
@@ -1011,12 +1017,19 @@ def main():
             except Exception as e:
                 notes.append({"issue": f"parsed source {nm} unreadable: {e}"})
     records, build_errors, normalized = [], [], []
+    ids = [asr.get("id") or f"a{i}" for i, asr in enumerate(draft["assertions"], 1)
+           if isinstance(asr, dict)]
+    valid_ids = [aid for aid in ids if isinstance(aid, str)]
+    if len(valid_ids) != len(set(valid_ids)):
+        refuse(a.out, "assertion IDs must be unique to bind output fields unambiguously")
     for i, asr in enumerate(draft.get("assertions", []), 1):
         aid = asr.get("id") if isinstance(asr, dict) else None
         if not isinstance(asr, dict):
             build_errors.append({"index": i, "id": None, "error": f"assertion must be an object, got {type(asr).__name__}"})
             continue
         try:
+            if aid is not None and (not isinstance(aid, str) or not aid.strip()):
+                raise ValueError("assertion id must be a nonempty string")
             fixes = normalize_assertion(asr, i, vocab)
             if fixes:
                 normalized.append({"assertion": asr.get("id"), "changes": fixes})
@@ -1114,31 +1127,28 @@ def main():
                          "n_quarantined": len(quarantined), "source_iri": C.source_iri(src.md)},
              "status": "pending"}
     by_aid = {r["assertion"]["id"]: r for r in records}
-    quarantined_ids = {q["assertion_id"] for q in quarantined}
-    quarantined_field_refs = set()
+    res["field_review"] = {}
     for f, fs in fields.items():
         fs = fs if isinstance(fs, dict) else {"value": fs}
         kind = fs.get("kind", "agent_value")
         if "value" in fs:
-            res[f] = copy.deepcopy(fs["value"])
-            ids = fs.get("from") or []
-            ids = ids if isinstance(ids, list) else [ids]
-            res["field_evidence"][f] = [e for i in ids if i in by_aid for e in flat_evidence([by_aid[i]])]
-            q_refs = [i for i in ids if i in quarantined_ids]
-            bad = [i for i in ids if i not in by_aid and i not in quarantined_ids]
-            ok = not K.is_empty(res[f]) and bool(ids) and not bad and not q_refs
-            if q_refs and not any(i in by_aid for i in ids):
+            value = fs["value"]
+            refs = fs.get("from")
+            ids = refs if isinstance(refs, list) else ([refs] if refs is not None else [])
+            invalid = [i for i in ids if not isinstance(i, str) or i not in by_aid]
+            res["field_evidence"][f] = flat_evidence([by_aid[i] for i in ids if isinstance(i, str) and i in by_aid])
+            if K.is_empty(value):
                 res[f] = None
-                quarantined_field_refs.add(f)
+                res["field_status"][f] = "unreported"
+            elif not ids or invalid:
+                res[f] = None
                 res["field_status"][f] = "needs_review"
-                uncertainty.append({"field": f, "issue": f"'from' references only quarantined assertion(s) {q_refs}; value cleared"})
+                reason = "references failed, unbuilt or unknown assertion IDs" if invalid else "missing supporting assertion IDs"
+                res["field_review"][f] = {"value": value, "from": ids, "invalid_refs": invalid, "reason": reason}
+                uncertainty.append({"field": f, "issue": reason})
             else:
-                res["field_status"][f] = "supported" if ok else ("unreported" if K.is_empty(res[f]) else "needs_review")
-                if q_refs:
-                    quarantined_field_refs.add(f)
-                    uncertainty.append({"field": f, "issue": f"'from' references quarantined assertion(s) {q_refs}"})
-            if bad:
-                uncertainty.append({"field": f, "issue": f"'from' names unknown assertion ids {bad}"})
+                res[f] = copy.deepcopy(value)
+                res["field_status"][f] = "supported"
         elif kind in views:
             sel = fs.get("filter")
             v = copy.deepcopy(views[kind]) if kind != "nanopublications" else views[kind]
@@ -1175,7 +1185,7 @@ def main():
     res["quarantined_assertions"] = quarantined
     required = set(spec.get("required") or []) if spec_fields else set(res["field_status"])
     for f, fsp in spec_fields.items():  # type / nested-schema check against the contract (lossless coercion only)
-        if f == "case_id" or f not in res or res["field_status"].get(f) in (None, "unreported"):
+        if f == "case_id" or f not in res or res["field_status"].get(f) in (None, "unreported", "needs_review"):
             continue
         sch = fsp.get("schema") if isinstance(fsp.get("schema"), dict) else ({"type": fsp["type"]} if fsp.get("type") else None)
         if not sch or not (sch.get("type") or sch.get("properties") or sch.get("items")):
@@ -1195,7 +1205,7 @@ def main():
     agent_unrep = {u.get("field") for u in (draft.get("unreported") or []) if isinstance(u, dict) and u.get("reason")}
     declared_unrep_req = [f for f, st in res["field_status"].items() if f in required and st == "unreported" and f in agent_unrep]
     unfilled_req = [f for f, st in res["field_status"].items() if f in required
-                    and (st in (None, "unreported", "schema_mismatch") or (f in quarantined_field_refs and res.get(f) is None))
+                    and st in (None, "unreported", "schema_mismatch", "needs_review")
                     and f not in declared_unrep_req]
     needs_review_req = [f for f, st in res["field_status"].items() if f in required and st == "needs_review"]
     unfilled_opt = [f for f, st in res["field_status"].items() if f not in required and st in (None, "unreported", "schema_mismatch")]
