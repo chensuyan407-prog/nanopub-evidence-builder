@@ -43,14 +43,14 @@
  "papers": {
   "resnet": {
    "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
-   "init_seconds": 1.59,
-   "build_seconds": 0.66,
+   "init_seconds": 2.2,
+   "build_seconds": 0.69,
    "deterministic_nquads": true,
    "export_roundtrip": {
-    "nquads_lines": 552,
+    "nquads_lines": 358,
     "nquads_malformed": 0,
-    "jsonld_statements": 552,
-    "expected": 552,
+    "jsonld_statements": 358,
+    "expected": 358,
     "ok": true,
     "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
@@ -76,8 +76,8 @@
      "R15:warn": 1
     }
    },
-   "status": "partial",
-   "result_status": "partial",
+   "status": "success",
+   "result_status": "success",
    "result_field_status": {
     "assertions": "generated",
     "evidence": "generated",
@@ -87,14 +87,14 @@
   },
   "attention": {
    "pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
-   "init_seconds": 1.33,
-   "build_seconds": 0.72,
+   "init_seconds": 1.43,
+   "build_seconds": 0.85,
    "deterministic_nquads": true,
    "export_roundtrip": {
-    "nquads_lines": 633,
+    "nquads_lines": 478,
     "nquads_malformed": 0,
-    "jsonld_statements": 633,
-    "expected": 633,
+    "jsonld_statements": 478,
+    "expected": 478,
     "ok": true,
     "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
@@ -125,8 +125,8 @@
      "R19:warn": 1
     }
    },
-   "status": "partial",
-   "result_status": "partial",
+   "status": "success",
+   "result_status": "success",
    "result_field_status": {
     "assertions": "generated",
     "evidence": "generated",
@@ -136,14 +136,14 @@
   },
   "bn": {
    "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
-   "init_seconds": 1.23,
-   "build_seconds": 0.65,
+   "init_seconds": 1.57,
+   "build_seconds": 0.78,
    "deterministic_nquads": true,
    "export_roundtrip": {
-    "nquads_lines": 569,
+    "nquads_lines": 382,
     "nquads_malformed": 0,
-    "jsonld_statements": 569,
-    "expected": 569,
+    "jsonld_statements": 382,
+    "expected": 382,
     "ok": true,
     "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
@@ -170,8 +170,8 @@
      "R19:warn": 1
     }
    },
-   "status": "partial",
-   "result_status": "partial",
+   "status": "success",
+   "result_status": "success",
    "result_field_status": {
     "assertions": "generated",
     "evidence": "generated",
@@ -181,14 +181,14 @@
   },
   "kaplan_holdout": {
    "pdf_sha256": "a41bd7877fd1a6bcbba096b2619618bd2f90e02488f2365644903eb2f7c6a494",
-   "init_seconds": 4.2,
-   "build_seconds": 1.08,
+   "init_seconds": 4.91,
+   "build_seconds": 1.12,
    "deterministic_nquads": true,
    "export_roundtrip": {
-    "nquads_lines": 665,
+    "nquads_lines": 558,
     "nquads_malformed": 0,
-    "jsonld_statements": 665,
-    "expected": 665,
+    "jsonld_statements": 558,
+    "expected": 558,
     "ok": true,
     "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
    },
@@ -216,8 +216,8 @@
      "R15:warn": 1
     }
    },
-   "status": "partial",
-   "result_status": "partial",
+   "status": "success",
+   "result_status": "success",
    "result_field_status": {
     "answer_alpha_n": "supported",
     "answer_shape": "supported",
@@ -232,7 +232,7 @@
    }
   }
  },
- "wall_seconds": 13.46,
+ "wall_seconds": 15.72,
  "robustness": {
   "encrypted_pdf": {
    "status": "failed",
@@ -252,7 +252,7 @@
    "ok": true
   },
   "image_region_evidence": {
-   "status": "partial",
+   "status": "success",
    "status_reason": {
     "failing_records": 0,
     "unfilled_fields": [],
@@ -265,9 +265,11 @@
     ],
     "unread_source_pages": [],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 1
    },
-   "ok": true
+   "ok": false
   },
   "v02_schema_nquads_inferred_r07": {
    "status": "success",
@@ -277,8 +279,8 @@
    "ok": true
   },
   "v03_regression_suite": {
-   "n_tests": 66,
-   "passed": 66,
+   "n_tests": 70,
+   "passed": 70,
    "failed": [],
    "ok": true
   }

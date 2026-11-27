@@ -41,7 +41,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\run_eval.py
  "authors_precision_mean": 1.0,
  "exports_roundtrip_ok": true,
  "deterministic": true,
- "wall_seconds": 13.46
+ "wall_seconds": 15.72
 }
 CHECK {"paper": "attention", "holdout": false, "id": "t04", "clean": true, "expected_rules": [], "verdict": "warn", "rules_found": ["R24"], "confidence": 0.65, "evidence_match": ["exact_sentence"], "bbox_precision": ["quote"], "pages": [9], "ok": true, "strict_pass": false, "located": true}
 
@@ -84,7 +84,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\encrypted_pdf\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 0.04
+ "seconds": 0.05
 }
 
 
@@ -195,7 +195,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\image_evidence\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 1.04
+ "seconds": 1.16
 }
 
 
@@ -248,6 +248,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_build.py --draft C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\work\draft.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\image_evidence\output --created 2026-11-23T00:00:00Z
 {
  "n_assertions": 1,
+ "quarantined": [],
  "summary": {
   "n": 1,
   "pass": 0,
@@ -266,7 +267,7 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
   "ok": true,
   "rdflib_trig_quads": "rdflib not installed (TriG checked only via the N-Quads twin)"
  },
- "status": "partial",
+ "status": "success",
  "status_reason": {
   "failing_records": 0,
   "unfilled_fields": [],
@@ -279,7 +280,9 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
   ],
   "unread_source_pages": [],
   "contract_errors": [],
-  "assertions_not_built": []
+  "assertions_not_built": [],
+  "quarantined_assertions": [],
+  "warnings": 1
  },
  "build_errors": [],
  "auto_filled_fields": [],
@@ -298,7 +301,10 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
    ]
   }
  ],
- "seconds": 0.09
+ "run_warnings": [
+  "image_read_evidence"
+ ],
+ "seconds": 0.1
 }
 
 
@@ -370,7 +376,7 @@ Consider using the pymupdf_layout package for a greatly improved page layout ana
  "draft": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\robustness\\v02_features\\work\\draft.json",
  "task_file": null,
  "case_error": null,
- "seconds": 1.36
+ "seconds": 1.62
 }
 
 
@@ -379,6 +385,7 @@ Consider using the pymupdf_layout package for a greatly improved page layout ana
 $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\np_build.py --draft C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\work\draft.json --out C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\execution\results\robustness\v02_features\output --created 2026-11-25T00:00:00Z
 {
  "n_assertions": 2,
+ "quarantined": [],
  "summary": {
   "n": 2,
   "pass": 1,
@@ -409,7 +416,9 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
   "image_read_records_need_human_review": [],
   "unread_source_pages": [],
   "contract_errors": [],
-  "assertions_not_built": []
+  "assertions_not_built": [],
+  "quarantined_assertions": [],
+  "warnings": 0
  },
  "build_errors": [],
  "auto_filled_fields": [],
@@ -439,7 +448,8 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\submission\scripts\
    ]
   }
  ],
- "seconds": 0.19
+ "run_warnings": [],
+ "seconds": 0.18
 }
 
 
@@ -488,31 +498,35 @@ $ C:\Users\12117\Desktop\bohrium-pdf-evidence-reader\nanopub\tests\test_v03.py
 {"test": "contract: mixed wrappers merged without dropping fields (P0-2)", "ok": true, "got": ["a", "b", "c", "d"]}
 {"test": "validate: '1e999' rejected (no Infinity) (P0-4)", "ok": true, "p": ["big: expected number, got str"], "v": "1e999"}
 {"test": "e2e: case_id 0 kept", "ok": true, "case_id": 0}
-{"test": "e2e: optional field unfilled -> still success", "ok": true, "status": "success", "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: optional field unfilled -> still success", "ok": true, "status": "success", "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 0}}
 {"test": "e2e: '1' coerced to integer 1 for an integer field", "ok": true, "v": 1}
 {"test": "e2e: status field filled", "ok": true}
-{"test": "e2e: required integer field given 'one' -> partial + field_problems", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["n_assertions"], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": ["n_assertions"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: required integer field given 'one' -> partial + field_problems", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["n_assertions"], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": ["n_assertions"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 0}}
 {"test": "e2e: nested items.required enforced, 'rename' satisfies it", "ok": true, "before": "partial", "after": "success"}
 {"test": "e2e: role=primary beats a larger supplement", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\main.pdf", "role": "primary", "stem": "main", "format": "pdf"}, {"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\supp_big.pdf", "role": "supplement", "stem": "supp_big", "format": "pdf"}]}
 {"test": "e2e: key names (paper_pdf vs supplementary_pdf) decide the primary", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\article.pdf", "role": "primary", "stem": "article", "format": "pdf"}, {"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\SI_appendix.pdf", "role": "supplement", "stem": "SI_appendix", "format": "pdf"}]}
 {"test": "e2e: corrupt draft -> exit 2, result.json unchanged, build_error.json written", "ok": true, "code": 2}
 {"test": "e2e: empty draft after a good build -> exit 3, result.json unchanged", "ok": true, "code": 3}
 {"test": "e2e: assertions not a list -> exit 2, unchanged", "ok": true, "code": 2}
-{"test": "e2e: malformed assertions isolated -> others built, status partial, build_errors listed", "ok": true, "build_errors": [{"index": 2, "id": null, "error": "assertion must be an object, got str"}, {"index": 3, "id": "a3", "error": "ValueError: evidence item must be a sentence id, a quote or an object, got list", "fix_hint": "check this assertion's evidence / qualifiers shape against SKILL.md"}]}
+{"test": "e2e: malformed assertions isolated -> others built, status success + run_warnings, build_errors listed", "ok": true, "build_errors": [{"index": 2, "id": null, "error": "assertion must be an object, got str"}, {"index": 3, "id": "a3", "error": "ValueError: evidence item must be a sentence id, a quote or an object, got list", "fix_hint": "check this assertion's evidence / qualifiers shape against SKILL.md"}]}
+{"test": "e2e: failing record quarantined (kept for audit, not exported) -> success", "ok": true, "status": "success", "q": [{"assertion_id": "a9", "text": "An ensemble of residual nets achieves 9.99% error on the ImageNet test set.", "fail_rules": ["R09: number(s) in the assertion not found in any evidence item"]}]}
+{"test": "e2e: predicate 'Achieve' / modality 'Assert' / evidence_type 'Explicit' auto-normalised", "ok": true, "a1": {"assertion_id": "a1", "np_id": "np-434b457714bd", "text": "An ensemble of residual nets achieves 3.57% error on the ImageNet test set.", "subject": "ensemble of residual nets", "predicate": "achieves", "relation_type": "quantitative", "object": "error on the ImageNet test set", "qualifiers": {"value": "3.57", "unit": "%", "metric": "error", "dataset": "ImageNet test set"}, "modality": "asserted", "scope": "this_work", "evidence_type": "direct", "evidence_ids": ["ev-06ddd53449"], "evidence": [{"evidence_id": "ev-06ddd53449", "role": "support", "quote": "An ensemble of these residual nets achieves 3.57% error on the ImageNet test set.", "page": 1, "block_id": "p1-b5", "sentence_id": "p1-b5-s6", "bbox": [50.11, 377.55, 286.37, 399.65], "match": "exact_sentence"}], "confidence": 0.9, "verdict": "pass", "issues": []}, "warnings": [{"type": "quarantined_assertions", "ids": ["a9"], "note": "failing records kept out of exports; see quarantined_assertions / review.md"}, {"type": "auto_normalized", "items": [{"assertion": "a1", "changes": ["predicate 'Achieve' -> 'achieves'", "modality 'Assert' -> 'asserted'", "evidence_type 'Explicit' -> 'direct'"]}]}]}
+{"test": "e2e: required field declared unreported with a reason -> success + warning, value null", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["notes"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 1}}
+{"test": "e2e: required field left empty without a reason -> still partial", "ok": true}
 {"test": "e2e: --merge appends a2 to the built a1", "ok": true, "ids": ["a1", "a2"]}
 {"test": "e2e: --merge with delete removes a2", "ok": true}
 {"test": "e2e: markdown paper parsed with stable ids + front-matter metadata", "ok": true, "sid": "p1-b3-s1", "md": {"title": "Sparse Widgets Improve Gadget Recall", "authors": ["Ada Lovelace", "Alan Turing"], "doi": "10.5555/widgets.2024.7", "year": 2024}}
-{"test": "e2e: markdown sentence + 亿-scaled value + table cell all bind, status success", "ok": true, "verdicts": {"m1": ["pass", []], "m2": ["pass", []], "m3": ["pass", []]}, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": [], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: markdown sentence + 亿-scaled value + table cell all bind, status success", "ok": true, "verdicts": {"m1": ["pass", []], "m2": ["pass", []], "m3": ["pass", []]}, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": [], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 0}}
 {"test": "e2e: .txt fallback (task.md skipped), form feed -> logical page 2", "ok": true, "materials": [{"file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c8_txt\\input\\notes.txt", "role": "unlabelled", "stem": "notes", "format": "txt"}], "ids": ["p1-b2-s1", "p2-b1-s1"]}
-{"test": "e2e: .docx parsed: title, heading section, page break, core authors", "ok": true, "s1": "p1-b3-s1", "md": [{"title": "Docx Paper on Widgets", "authors": ["Ada Lovelace", "Alan Turing"], "arxiv_id": null, "version": null, "doi": null, "year": null, "venue": null, "file_sha256": "7119493a7378af8b5c336e4f49a8015a10ea599ade3c0f57abd7f6c7df751c0c", "source_format": "docx", "page_count": 2, "file_name": "paper.docx", "material_role": "primary"}]}
+{"test": "e2e: .docx parsed: title, heading section, page break, core authors", "ok": true, "s1": "p1-b3-s1", "md": [{"title": "Docx Paper on Widgets", "authors": ["Ada Lovelace", "Alan Turing"], "arxiv_id": null, "version": null, "doi": null, "year": null, "venue": null, "file_sha256": "c8b07333df8a1c5a13c19cdf537f8363a553d23bc25d1728988f4c1c831b3958", "source_format": "docx", "page_count": 2, "file_name": "paper.docx", "material_role": "primary"}]}
 {"test": "e2e: hostile chars -> every N-Quads line is strictly valid, round trip ok", "ok": true, "bad": []}
 {"test": "e2e: paper.md beats appendix.pdf without manifest (P1-2)", "ok": true, "primary": "paper"}
 {"test": "e2e: resource_token not auto-filled as provenance (P1-3)", "ok": true}
-{"test": "e2e: 1e999 rejected & needs_review required field -> partial, valid JSON (P0-4, P1-3)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["score"], "needs_review_fields": ["review_note"], "unfilled_optional_fields": ["resource_token"], "schema_problems": ["score"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": []}}
+{"test": "e2e: 1e999 rejected & needs_review required field -> partial, valid JSON (P0-4, P1-3)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": ["score"], "needs_review_fields": ["review_note"], "unfilled_optional_fields": ["resource_token"], "schema_problems": ["score"], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 1}}
 {"test": "e2e: reserved field_status in draft.fields -> exit 2, result.json and nanopubs.nq untouched (P0-3)", "ok": true, "code": 2}
 {"test": "e2e: broken case.json re-init does not clobber built result.json (P1-1)", "ok": true}
-{"test": "e2e: unresolved_pages on source -> partial (P0-5)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["resource_token"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [{"stem": "paper", "unresolved_pages": [2], "pages_not_parsed": []}], "contract_errors": [], "assertions_not_built": []}}
-{"n_tests": 66, "passed": 66, "failed": []}
+{"test": "e2e: unresolved_pages on source -> success + unread_source_pages warning (P0-5)", "ok": true, "reason": {"failing_records": 0, "unfilled_fields": [], "needs_review_fields": [], "unfilled_optional_fields": ["resource_token"], "schema_problems": [], "export_ok": true, "image_read_records_need_human_review": [], "unread_source_pages": [{"stem": "paper", "unresolved_pages": [2], "pages_not_parsed": []}], "contract_errors": [], "assertions_not_built": [], "quarantined_assertions": [], "warnings": 1}}
+{"n_tests": 70, "passed": 70, "failed": []}
 
 
 [exit 0]

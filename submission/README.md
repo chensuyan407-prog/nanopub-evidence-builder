@@ -1,4 +1,4 @@
-# nanopub-evidence-builder 0.3.0 — field dictionary, method, limits
+# nanopub-evidence-builder 0.3.1 — field dictionary, method, limits
 
 Agent Skill for **阅读14｜Nanopublication**: turn the conclusions of a scientific PDF into
 nanopublications — one atomic, checkable assertion per record, each bound to the smallest verbatim
@@ -55,8 +55,10 @@ installed; counts must agree (`export_roundtrip.ok`). Control characters in quot
 ## result.json
 
 `case_id` (as given, `0` included), every `output_contract` field (filled as mapped in `draft.fields`; unmapped fields
-from the suggested kind), `status` (`success` only if all *required* fields are filled and match their schema, no failing
-record, no assertion that failed to build, export ok, no image-only evidence), `status_reason` (`unfilled_fields`,
+from the suggested kind), `status` (`success` when at least one record passes, every *required* field is filled and matches its schema
+(or is `null` and listed in `unreported` with a reason), and the RDF export round-trips; failing records are
+quarantined out of the exports into `quarantined_assertions`; build errors, image-read evidence, unread pages,
+fields needing review and auto-normalised spellings are listed in `run_warnings`), `status_reason` (`unfilled_fields`,
 `unfilled_optional_fields`, `schema_problems`, `assertions_not_built`, ...), `field_status`
 (`supported` / `generated` / `needs_review` / `unreported` / `schema_mismatch`), `field_problems` (path-level schema
 problems, e.g. `assertions[3].claim: required key missing`), `output_contract_spec` (where the contract was found,
@@ -116,10 +118,12 @@ ResNet-34 C in Table 3; Table 4 prints 5.71. The label (and the reproduce.py v0.
 - Author splitting is heuristic (flagged `needs_review`); correct with `source_overrides`. Years from `pdf_info`
   are file dates. DOI only if printed in the PDF; no network lookup.
 - Pages without text layer need OCR (tesseract, if installed) or image reading; image-read evidence is never
-  machine-verified (R26) and keeps the result `partial`.
+  machine-verified (R26) and is listed in `run_warnings` (`image_read_evidence`) for human review.
 - No signing, no Trusty URI, no publishing to the nanopub network.
 
 ## Maintenance
+
+Version 0.3.1 (2026-11-27). Lower-friction run: SKILL.md cut to a 4-step path (80 lines); np_build auto-normalises predicate / modality / scope / evidence_type spellings and missing ids, quarantines failing records out of the exports instead of marking the whole run `partial`, reports build errors / image-read evidence / unread pages / fields needing review in `run_warnings`, accepts a required field that is `null` with a reasoned `unreported` entry, and turns any unexpected exception into exit 2 with `build_error.json` (result.json untouched).
 
 Version 0.3.0 (2026-11-25). Added magnitude-aware numbers (R09/R27), reasoning recomputation (R28), cited-scope / image-region / figure rules (R29–R31), respectively / multi-value / Chinese compound detection, limiter check, attribution cues, role-based primary/supplement selection, .md/.txt/.docx/.html papers, contract required/optional + nested type validation, `case_id: 0`, draft-safe builds (`build_error.json`, refuse-to-shrink, `result.prev.json`, `--merge`), strict IRI/literal serialisation, unified `PY`/`SKILL_DIR` discovery. Fixed 6 lost `\b` anchors in the author-block parser.
 Version 0.2.0: added JSON Schema `output_contract` support, `nquads`/`summary`/`unreported`/`conflicts`/`uncertainty`/`review` view mappings, `inferred` + `reasoning` numeric verification, parenthetical semicolon / adjectival participle `R07` false-fail fixes, Chinese non-negation exclusions, multi-PDF resolution, and `python3` `$SKILL_DIR` guidance. Change vocabulary in `vocab/relations.json` (predicates need `relation_type` and `polarity`); rules live in `np_check.py` (one block per rule id, stable ids). Re-run `python tests/run_eval.py` in the bundle after any change; add a labelled case to `tests/eval/` for every bug found.

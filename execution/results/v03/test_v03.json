@@ -1,7 +1,7 @@
 {
  "summary": {
-  "n_tests": 66,
-  "passed": 66,
+  "n_tests": 70,
+  "passed": 70,
   "failed": []
  },
  "tests": [
@@ -370,7 +370,9 @@
     "image_read_records_need_human_review": [],
     "unread_source_pages": [],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 0
    }
   },
   {
@@ -401,7 +403,9 @@
     "image_read_records_need_human_review": [],
     "unread_source_pages": [],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 0
    }
   },
   {
@@ -462,7 +466,7 @@
    "code": 2
   },
   {
-   "test": "e2e: malformed assertions isolated -> others built, status partial, build_errors listed",
+   "test": "e2e: malformed assertions isolated -> others built, status success + run_warnings, build_errors listed",
    "ok": true,
    "build_errors": [
     {
@@ -477,6 +481,111 @@
      "fix_hint": "check this assertion's evidence / qualifiers shape against SKILL.md"
     }
    ]
+  },
+  {
+   "test": "e2e: failing record quarantined (kept for audit, not exported) -> success",
+   "ok": true,
+   "status": "success",
+   "q": [
+    {
+     "assertion_id": "a9",
+     "text": "An ensemble of residual nets achieves 9.99% error on the ImageNet test set.",
+     "fail_rules": [
+      "R09: number(s) in the assertion not found in any evidence item"
+     ]
+    }
+   ]
+  },
+  {
+   "test": "e2e: predicate 'Achieve' / modality 'Assert' / evidence_type 'Explicit' auto-normalised",
+   "ok": true,
+   "a1": {
+    "assertion_id": "a1",
+    "np_id": "np-434b457714bd",
+    "text": "An ensemble of residual nets achieves 3.57% error on the ImageNet test set.",
+    "subject": "ensemble of residual nets",
+    "predicate": "achieves",
+    "relation_type": "quantitative",
+    "object": "error on the ImageNet test set",
+    "qualifiers": {
+     "value": "3.57",
+     "unit": "%",
+     "metric": "error",
+     "dataset": "ImageNet test set"
+    },
+    "modality": "asserted",
+    "scope": "this_work",
+    "evidence_type": "direct",
+    "evidence_ids": [
+     "ev-06ddd53449"
+    ],
+    "evidence": [
+     {
+      "evidence_id": "ev-06ddd53449",
+      "role": "support",
+      "quote": "An ensemble of these residual nets achieves 3.57% error on the ImageNet test set.",
+      "page": 1,
+      "block_id": "p1-b5",
+      "sentence_id": "p1-b5-s6",
+      "bbox": [
+       50.11,
+       377.55,
+       286.37,
+       399.65
+      ],
+      "match": "exact_sentence"
+     }
+    ],
+    "confidence": 0.9,
+    "verdict": "pass",
+    "issues": []
+   },
+   "warnings": [
+    {
+     "type": "quarantined_assertions",
+     "ids": [
+      "a9"
+     ],
+     "note": "failing records kept out of exports; see quarantined_assertions / review.md"
+    },
+    {
+     "type": "auto_normalized",
+     "items": [
+      {
+       "assertion": "a1",
+       "changes": [
+        "predicate 'Achieve' -> 'achieves'",
+        "modality 'Assert' -> 'asserted'",
+        "evidence_type 'Explicit' -> 'direct'"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "test": "e2e: required field declared unreported with a reason -> success + warning, value null",
+   "ok": true,
+   "reason": {
+    "failing_records": 0,
+    "unfilled_fields": [],
+    "needs_review_fields": [],
+    "unfilled_optional_fields": [
+     "notes"
+    ],
+    "schema_problems": [],
+    "export_ok": true,
+    "image_read_records_need_human_review": [],
+    "unread_source_pages": [],
+    "contract_errors": [],
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 1
+   }
+  },
+  {
+   "test": "e2e: required field left empty without a reason -> still partial",
+   "ok": true
   },
   {
    "test": "e2e: --merge appends a2 to the built a1",
@@ -531,7 +640,9 @@
     "image_read_records_need_human_review": [],
     "unread_source_pages": [],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 0
    }
   },
   {
@@ -566,7 +677,7 @@
      "doi": null,
      "year": null,
      "venue": null,
-     "file_sha256": "7119493a7378af8b5c336e4f49a8015a10ea599ade3c0f57abd7f6c7df751c0c",
+     "file_sha256": "c8b07333df8a1c5a13c19cdf537f8363a553d23bc25d1728988f4c1c831b3958",
      "source_format": "docx",
      "page_count": 2,
      "file_name": "paper.docx",
@@ -609,7 +720,9 @@
     "image_read_records_need_human_review": [],
     "unread_source_pages": [],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 1
    }
   },
   {
@@ -622,7 +735,7 @@
    "ok": true
   },
   {
-   "test": "e2e: unresolved_pages on source -> partial (P0-5)",
+   "test": "e2e: unresolved_pages on source -> success + unread_source_pages warning (P0-5)",
    "ok": true,
    "reason": {
     "failing_records": 0,
@@ -644,7 +757,9 @@
      }
     ],
     "contract_errors": [],
-    "assertions_not_built": []
+    "assertions_not_built": [],
+    "quarantined_assertions": [],
+    "warnings": 1
    }
   }
  ]

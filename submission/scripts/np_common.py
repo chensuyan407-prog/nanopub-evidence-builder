@@ -11,7 +11,7 @@ import os
 import re
 import unicodedata
 
-VERSION = "0.3.0"
+VERSION = "0.3.1"
 TOOL = f"nanopub-evidence-builder {VERSION}"
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL_DIR = os.path.dirname(HERE)

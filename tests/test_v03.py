@@ -342,9 +342,43 @@ def test_e2e(scripts, pdfs, base):
     write(os.path.join(work, "mixed.json"), mixed)
     rb = run(scripts, "np_build.py", "--draft", os.path.join(work, "mixed.json"), "--out", out, "--no-previews")
     res = load(rp)
-    ok("e2e: malformed assertions isolated -> others built, status partial, build_errors listed",
-       rb.returncode == 0 and len(res["assertions"]) == 1 and len(res["build_errors"]) == 2 and res["status"] == "partial"
+    ok("e2e: malformed assertions isolated -> others built, status success + run_warnings, build_errors listed",
+       rb.returncode == 0 and len(res["assertions"]) == 1 and len(res["build_errors"]) == 2 and res["status"] == "success"
+       and any(w["type"] == "assertions_not_built" for w in res["run_warnings"])
        and os.path.exists(os.path.join(out, "result.prev.json")), build_errors=res.get("build_errors"))
+    # C5b failing record quarantined; sloppy predicate / enum spelling auto-normalised
+    qd = json.loads(json.dumps(ok_draft))
+    qd["assertions"][0].update({"predicate": "Achieve", "modality": "Assert", "evidence_type": "Explicit"})
+    qd["assertions"].append({"id": "a9", "text": "An ensemble of residual nets achieves 9.99% error on the ImageNet test set.", "subject": "ensemble of residual nets",
+                             "predicate": "achieves", "object": "error", "qualifiers": {"value": "9.99", "unit": "%"}, "evidence": ["p1-b5-s6"]})
+    write(os.path.join(work, "quar.json"), qd)
+    rb = run(scripts, "np_build.py", "--draft", os.path.join(work, "quar.json"), "--out", out, "--no-previews")
+    res = load(rp)
+    nq = open(os.path.join(out, "nanopubs.nq"), encoding="utf-8").read()
+    allrec = load(os.path.join(out, "nanopubs.json"))["nanopublications"]
+    ok("e2e: failing record quarantined (kept for audit, not exported) -> success",
+       rb.returncode == 0 and res["status"] == "success" and [q["assertion_id"] for q in res["quarantined_assertions"]] == ["a9"]
+       and [x["assertion_id"] for x in res["assertions"]] == ["a1"] and "9.99" not in nq and len(allrec) == 2,
+       status=res["status"], q=res.get("quarantined_assertions"))
+    ok("e2e: predicate 'Achieve' / modality 'Assert' / evidence_type 'Explicit' auto-normalised",
+       res["assertions"][0].get("predicate") == "achieves" and any(w["type"] == "auto_normalized" for w in res["run_warnings"]),
+       a1=res["assertions"][0], warnings=res.get("run_warnings"))
+    d, case, out, work = make_case(base, "c5c_unrep", {"paper.pdf": resnet}, {"case_id": "u1", "pdf": "paper.pdf", "output_contract": schema})
+    run(scripts, "np_init.py", "--case", case, "--out", out, "--work", work)
+    rp = os.path.join(out, "result.json")
+    ud = json.loads(json.dumps(ok_draft))
+    ud["fields"]["n_assertions"] = {"value": None}
+    ud["unreported"] = [{"field": "n_assertions", "reason": "not reported in the paper (searched: abstract, tables)"}]
+    write(os.path.join(work, "unrep.json"), ud)
+    run(scripts, "np_build.py", "--draft", os.path.join(work, "unrep.json"), "--out", out, "--no-previews")
+    res = load(rp)
+    ok("e2e: required field declared unreported with a reason -> success + warning, value null",
+       res["status"] == "success" and res.get("n_assertions") is None
+       and any(w["type"] == "required_fields_unreported_by_paper" for w in res["run_warnings"]), reason=res.get("status_reason"))
+    ud["unreported"] = []
+    write(os.path.join(work, "unrep2.json"), ud)
+    run(scripts, "np_build.py", "--draft", os.path.join(work, "unrep2.json"), "--out", out, "--no-previews")
+    ok("e2e: required field left empty without a reason -> still partial", load(rp)["status"] == "partial")
     # C6 --merge
     write(os.path.join(work, "draft.json"), ok_draft)
     run(scripts, "np_build.py", "--draft", os.path.join(work, "draft.json"), "--out", out, "--no-previews")
@@ -450,13 +484,14 @@ def test_e2e(scripts, pdfs, base):
     write(case, "{broken")
     run(scripts, "np_init.py", "--case", case, "--out", out, "--work", work)
     ok("e2e: broken case.json re-init does not clobber built result.json (P1-1)", fhash(rp11) == h_res and os.path.exists(os.path.join(out, "init_error.json")))
-    # P0-5: unresolved_pages -> partial
+    # P0-5: unresolved_pages -> reported as a run warning (limit), records built from readable pages keep status success
     res_unres = load(rp11)
     res_unres["sources"][0]["unresolved_pages"] = [2]
     write(rp11, res_unres)
     run(scripts, "np_build.py", "--draft", os.path.join(work, "draft.json"), "--out", out, "--no-previews")
     res_after = load(rp11)
-    ok("e2e: unresolved_pages on source -> partial (P0-5)", res_after["status"] == "partial" and bool(res_after["status_reason"]["unread_source_pages"]),
+    ok("e2e: unresolved_pages on source -> success + unread_source_pages warning (P0-5)", res_after["status"] == "success"
+       and bool(res_after["status_reason"]["unread_source_pages"]) and any(w["type"] == "unread_source_pages" for w in res_after["run_warnings"]),
        reason=res_after["status_reason"])
 
 

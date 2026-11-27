@@ -411,6 +411,65 @@ def slot(x, kind=None):
     return {"label": x or "", "type": kind}
 
 
+_PRED_ALIAS = {"has": "has_property", "is": "is_a", "isa": "is_a", "value": "has_value", "has_measured_value": "has_value",
+               "reports": "has_value", "equals": "has_value", "outperform": "outperforms", "beats": "outperforms",
+               "better_than": "outperforms", "worse_than": "underperforms", "greater_than": "higher_than", "more_than": "higher_than",
+               "less_than": "lower_than", "smaller_than": "lower_than", "similar_to": "comparable_to", "lead_to": "causes",
+               "leads_to": "causes", "results_in": "causes", "correlated_with": "correlates_with", "associates_with": "associated_with",
+               "contains": "has_part", "consists_of": "has_part", "includes": "has_part", "define": "defined_as", "is_defined_as": "defined_as",
+               "evaluated_using": "evaluated_on", "tested_on": "evaluated_on", "observed": "observed_in", "detected": "detected_in",
+               "not_improves": "does_not_improve", "not_associated": "not_associated_with"}
+_ENUM_ALIAS = {
+    "modality": ({"asserted", "hedged", "negated", "hypothesis"},
+                 {"assert": "asserted", "fact": "asserted", "hedge": "hedged", "uncertain": "hedged", "negative": "negated",
+                  "negation": "negated", "hypothesised": "hypothesis", "hypothesized": "hypothesis"}, "asserted"),
+    "scope": ({"this_work", "cited_work", "background"},
+              {"this": "this_work", "own": "this_work", "this_paper": "this_work", "cited": "cited_work", "prior_work": "cited_work",
+               "related_work": "cited_work", "general": "background"}, "this_work"),
+    "evidence_type": ({"direct", "inferred", "cited"},
+                      {"explicit": "direct", "quote": "direct", "inference": "inferred", "indirect": "inferred", "derived": "inferred",
+                       "computed": "inferred", "citation": "cited"}, "direct"),
+}
+
+
+def normalize_assertion(a, idx, vocab):
+    """Auto-fix spelling of ids / controlled terms instead of failing on them; returns the list of changes."""
+    notes = []
+    if not a.get("id"):
+        a["id"] = f"a{idx}"
+        notes.append(f"id missing -> {a['id']}")
+    preds = vocab["predicates"]
+    p = a.get("predicate")
+    if isinstance(p, str) and p not in preds:
+        k = re.sub(r"[\s\-]+", "_", p.strip().lower())
+        cand = [k, _PRED_ALIAS.get(k), k + "s", k[:-1] if k.endswith("s") else None, k + "_to", k + "_in", k + "_on"]
+        hit = next((c for c in cand if c and c in preds), None)
+        if hit:
+            a["predicate"] = hit
+            notes.append(f"predicate {p!r} -> {hit!r}")
+    import difflib
+    for key, (allowed, alias, default) in _ENUM_ALIAS.items():
+        v = a.get(key)
+        if v in (None, "") or v in allowed:
+            continue
+        k = re.sub(r"[\s\-]+", "_", str(v).strip().lower())
+        if k in allowed:
+            new = k
+        elif k in alias:
+            new = alias[k]
+        else:
+            close = difflib.get_close_matches(k, sorted(allowed), n=1, cutoff=0.75)
+            new = close[0] if close else default
+        a[key] = new
+        notes.append(f"{key} {v!r} -> {new!r}")
+    if a.get("scope") == "cited_work" and not a.get("evidence_type"):
+        a["evidence_type"] = "cited"
+    if isinstance(a.get("evidence"), (str, dict)):
+        a["evidence"] = [a["evidence"]]
+        notes.append("evidence wrapped in a list")
+    return notes
+
+
 def build_record(src, a, idx, vocab, creator, created, draft_unreported=()):
     pred = a.get("predicate")
     pinfo = vocab["predicates"].get(pred, {})
@@ -790,7 +849,7 @@ def now_iso():
 
 RESERVED_FIELDS = {"case_id", "sources", "field_status", "field_evidence", "field_problems", "output_contract_spec",
                    "run_status", "change_log", "status_reason", "build_errors", "exports", "export_roundtrip",
-                   "quality_summary", "source_metadata"}
+                   "quality_summary", "source_metadata", "quarantined_assertions", "run_warnings"}
 _KIND_TYPES = {
     "nanopublications": {"array"}, "assertions": {"array"}, "evidence": {"array"},
     "relations": {"array"}, "unreported": {"array"}, "conflicts": {"array"}, "uncertainty": {"array"},
@@ -832,7 +891,7 @@ def load_draft(path, out):
     if "assertions" in draft and not isinstance(draft["assertions"], list):
         refuse(out, f"draft.assertions must be a list, got {type(draft['assertions']).__name__}")
     if "fields" in draft and not isinstance(draft["fields"], dict):
-        refuse(a.out, f"draft.fields must be an object mapping contract field -> spec, got {type(draft['fields']).__name__}")
+        refuse(out, f"draft.fields must be an object mapping contract field -> spec, got {type(draft['fields']).__name__}")
     for rk in draft.get("fields") or {}:
         if rk in RESERVED_FIELDS:
             refuse(out, f"draft.fields cannot overwrite reserved runtime key {rk!r}")
@@ -951,13 +1010,16 @@ def main():
                 srcs[nm] = Source(d, draft.get("source_overrides"))
             except Exception as e:
                 notes.append({"issue": f"parsed source {nm} unreadable: {e}"})
-    records, build_errors = [], []
+    records, build_errors, normalized = [], [], []
     for i, asr in enumerate(draft.get("assertions", []), 1):
         aid = asr.get("id") if isinstance(asr, dict) else None
         if not isinstance(asr, dict):
             build_errors.append({"index": i, "id": None, "error": f"assertion must be an object, got {type(asr).__name__}"})
             continue
         try:
+            fixes = normalize_assertion(asr, i, vocab)
+            if fixes:
+                normalized.append({"assertion": asr.get("id"), "changes": fixes})
             s = src
             if asr.get("source") and asr["source"] != os.path.basename(pdir):
                 s = srcs.get(asr["source"])
@@ -997,6 +1059,19 @@ def main():
                 render_previews(s, recs, os.path.join(a.out, "evidence_previews"))
             except Exception as e:  # previews are a convenience, never a reason to lose the result
                 notes.append({"issue": f"preview rendering failed for {s.name}: {e}"})
+    # Quarantine: records that fail a rule stay in nanopubs.json / quality_report / review.md for audit, but are kept out of
+    # the RDF exports and contract views, so one bad assertion does not turn a good run into 'partial'.
+    all_records, quarantined = records, []
+    failing = [r for r in records if r["quality"]["verdict"] == "fail"]
+    if failing:
+        for r in failing:
+            r["exported"] = False
+            quarantined.append({"assertion_id": r["assertion"]["id"], "text": r["assertion"].get("text"),
+                                "fail_rules": [f"{i['rule']}: {i['message']}" for i in r["quality"]["issues"] if i["severity"] == "fail"]})
+        records = [r for r in records if r["quality"]["verdict"] != "fail"]
+    if prev_n and not a.allow_shrink and not records:
+        refuse(a.out, f"refusing to replace a result with {prev_n} built records when all {len(all_records)} assertion(s) failed quality checks",
+               code=3, quarantined_assertions=quarantined[:20], hint="fix the failing assertions or pass --allow-shrink if intended")
     all_q = []
     for r in records:
         all_q += to_quads(r, vocab)
@@ -1036,9 +1111,11 @@ def main():
              "trig": "nanopubs.trig", "nquads": "nanopubs.nq", "jsonld": "nanopubs.jsonld",
              "review": "review.md", "unreported": unrep, "conflicts": conflicts, "uncertainty": uncertainty,
              "summary": {"n_assertions": len(records), "quality": qrep["summary"], "export_roundtrip_ok": rt["ok"],
-                         "source_iri": C.source_iri(src.md)},
+                         "n_quarantined": len(quarantined), "source_iri": C.source_iri(src.md)},
              "status": "pending"}
     by_aid = {r["assertion"]["id"]: r for r in records}
+    quarantined_ids = {q["assertion_id"] for q in quarantined}
+    quarantined_field_refs = set()
     for f, fs in fields.items():
         fs = fs if isinstance(fs, dict) else {"value": fs}
         kind = fs.get("kind", "agent_value")
@@ -1047,9 +1124,19 @@ def main():
             ids = fs.get("from") or []
             ids = ids if isinstance(ids, list) else [ids]
             res["field_evidence"][f] = [e for i in ids if i in by_aid for e in flat_evidence([by_aid[i]])]
-            bad = [i for i in ids if i not in by_aid]
-            ok = not K.is_empty(res[f]) and (ids and not bad and all(by_aid[i]["quality"]["verdict"] != "fail" for i in ids))
-            res["field_status"][f] = "supported" if ok else ("unreported" if K.is_empty(res[f]) else "needs_review")
+            q_refs = [i for i in ids if i in quarantined_ids]
+            bad = [i for i in ids if i not in by_aid and i not in quarantined_ids]
+            ok = not K.is_empty(res[f]) and bool(ids) and not bad and not q_refs
+            if q_refs and not any(i in by_aid for i in ids):
+                res[f] = None
+                quarantined_field_refs.add(f)
+                res["field_status"][f] = "needs_review"
+                uncertainty.append({"field": f, "issue": f"'from' references only quarantined assertion(s) {q_refs}; value cleared"})
+            else:
+                res["field_status"][f] = "supported" if ok else ("unreported" if K.is_empty(res[f]) else "needs_review")
+                if q_refs:
+                    quarantined_field_refs.add(f)
+                    uncertainty.append({"field": f, "issue": f"'from' references quarantined assertion(s) {q_refs}"})
             if bad:
                 uncertainty.append({"field": f, "issue": f"'from' names unknown assertion ids {bad}"})
         elif kind in views:
@@ -1084,7 +1171,8 @@ def main():
     res["conflicts"] = conflicts
     res["uncertainty"] = uncertainty
     res["build_errors"] = build_errors
-    n_fail = qrep["summary"]["fail"]
+    n_fail = sum(1 for r in records if r["quality"]["verdict"] == "fail")
+    res["quarantined_assertions"] = quarantined
     required = set(spec.get("required") or []) if spec_fields else set(res["field_status"])
     for f, fsp in spec_fields.items():  # type / nested-schema check against the contract (lossless coercion only)
         if f == "case_id" or f not in res or res["field_status"].get(f) in (None, "unreported"):
@@ -1101,12 +1189,14 @@ def main():
             res["field_status"][f] = "schema_mismatch"
     if "case_id" in spec_fields:
         cs = spec_fields["case_id"]
-        cid, probs, _ = K.validate(res.get("case_id"), cs.get("schema") or ({"type": cs["type"]} if cs.get("type") else {}), "case_id")
+        _, probs, _ = K.validate(res.get("case_id"), cs.get("schema") or ({"type": cs["type"]} if cs.get("type") else {}), "case_id")
         if probs and res.get("case_id") is not None:
             res["field_problems"]["case_id"] = probs
-        elif res.get("case_id") is not None:
-            res["case_id"] = cid
-    unfilled_req = [f for f, st in res["field_status"].items() if f in required and st in (None, "unreported", "schema_mismatch")]
+    agent_unrep = {u.get("field") for u in (draft.get("unreported") or []) if isinstance(u, dict) and u.get("reason")}
+    declared_unrep_req = [f for f, st in res["field_status"].items() if f in required and st == "unreported" and f in agent_unrep]
+    unfilled_req = [f for f, st in res["field_status"].items() if f in required
+                    and (st in (None, "unreported", "schema_mismatch") or (f in quarantined_field_refs and res.get(f) is None))
+                    and f not in declared_unrep_req]
     needs_review_req = [f for f, st in res["field_status"].items() if f in required and st == "needs_review"]
     unfilled_opt = [f for f, st in res["field_status"].items() if f not in required and st in (None, "unreported", "schema_mismatch")]
     image_only = [r["assertion"]["id"] for r in records if any(i["rule"] == "R26" for i in r["quality"]["issues"])]
@@ -1116,11 +1206,31 @@ def main():
         if s.get("unresolved_pages") or s.get("pages_not_parsed")
     ]
     contract_errors = spec.get("errors") or []
+    # Only missing core output makes a run 'partial': no record, a failing record set, an unfilled / mistyped required
+    # contract field, or a broken RDF export. Everything else is reported in run_warnings and the status stays 'success'.
+    warnings = []
+    if quarantined:
+        warnings.append({"type": "quarantined_assertions", "ids": [q["assertion_id"] for q in quarantined],
+                         "note": "failing records kept out of exports; see quarantined_assertions / review.md"})
+    if build_errors:
+        warnings.append({"type": "assertions_not_built", "ids": [e["id"] or e["index"] for e in build_errors]})
+    if needs_review_req:
+        warnings.append({"type": "fields_need_review", "fields": needs_review_req, "note": "value given without a passing 'from' assertion"})
+    if declared_unrep_req:
+        warnings.append({"type": "required_fields_unreported_by_paper", "fields": declared_unrep_req, "note": "null + reason in unreported"})
+    if image_only:
+        warnings.append({"type": "image_read_evidence", "ids": image_only, "note": "evidence transcribed from an image; human check advised"})
+    if unread_sources:
+        warnings.append({"type": "unread_source_pages", "sources": unread_sources, "note": "pages without text layer were not read"})
+    if contract_errors:
+        warnings.append({"type": "contract_errors", "errors": contract_errors})
+    if normalized:
+        warnings.append({"type": "auto_normalized", "items": normalized})
+    res["run_warnings"] = warnings
     if not records:
         res["status"] = "partial" if res.get("status") != "failed" else "failed"
     else:
-        res["status"] = "success" if (n_fail == 0 and not unfilled_req and not needs_review_req and rt["ok"]
-                                      and not image_only and not build_errors and not unread_sources and not contract_errors) else "partial"
+        res["status"] = "success" if (n_fail == 0 and not unfilled_req and rt["ok"]) else "partial"
     for f, fs in fields.items():
         if isinstance(fs, dict) and fs.get("kind") == "status" and "value" not in fs:
             res[f] = res["status"]
@@ -1128,20 +1238,22 @@ def main():
                             "unfilled_optional_fields": unfilled_opt,
                             "schema_problems": sorted(res["field_problems"]), "export_ok": rt["ok"],
                             "image_read_records_need_human_review": image_only, "unread_source_pages": unread_sources,
-                            "contract_errors": contract_errors, "assertions_not_built": [e["id"] or e["index"] for e in build_errors]}
+                            "contract_errors": contract_errors, "assertions_not_built": [e["id"] or e["index"] for e in build_errors],
+                            "quarantined_assertions": [q["assertion_id"] for q in quarantined], "warnings": len(warnings)}
     if not res["field_problems"]:
         res.pop("field_problems")
     res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL, "draft": a.draft, "merged_onto": merged_from,
-                                              "n_assertions": len(records), "n_build_errors": len(build_errors),
+                                              "n_assertions": len(records), "n_quarantined": len(quarantined), "n_build_errors": len(build_errors),
                                               "auto_filled_fields": auto,
                                               "verdicts": {k: qrep["summary"][k] for k in ("pass", "warn", "fail")}, "at": now_iso()})
-    nanopubs_payload = {"nanopublications": records, "vocabulary": "vocab/relations.json", "tool": C.TOOL}
+    nanopubs_payload = {"nanopublications": all_records, "vocabulary": "vocab/relations.json", "tool": C.TOOL}
     try:
         json.dumps(res, ensure_ascii=False, allow_nan=False)
         json.dumps(jl, ensure_ascii=False, allow_nan=False)
         json.dumps(nanopubs_payload, ensure_ascii=False, allow_nan=False)
     except Exception as e:
         refuse(a.out, f"output contains non-JSON-serializable values: {e}")
+    write_review(os.path.join(a.out, "review.md"), all_records, src, qrep)
     if prev is not None:
         C.dump_json(prev, os.path.join(a.out, "result.prev.json"))
     _write_text_atomic(os.path.join(a.out, "nanopubs.nq"), nq)
@@ -1154,15 +1266,15 @@ def main():
     be = os.path.join(a.out, "build_error.json")
     if os.path.exists(be):
         os.remove(be)
-    write_review(os.path.join(a.out, "review.md"), records, src, qrep)
-    print(json.dumps({"n_assertions": len(records), "summary": qrep["summary"], "export_roundtrip": rt, "status": res["status"],
+    print(json.dumps({"n_assertions": len(records), "quarantined": [q["assertion_id"] for q in quarantined], "summary": qrep["summary"], "export_roundtrip": rt, "status": res["status"],
                       "status_reason": res["status_reason"], "build_errors": build_errors, "auto_filled_fields": auto,
                       "field_problems": res.get("field_problems"),
                       "records": [{"id": r["assertion"]["id"], "verdict": r["quality"]["verdict"], "confidence": r["confidence"]["score"],
                                    "issues": [f"{i['rule']} {i['severity']}: {i['message']}" + (f" [{i['trigger']}]" if i.get("trigger") else "")
                                               for i in r["quality"]["issues"]],
                                    "evidence": [f"{e.get('match')} p{e.get('page')} {e.get('sentence_id') or e.get('table_id') or ''}" for e in r["evidence"]]}
-                                  for r in records],
+                                  for r in all_records],
+                      "run_warnings": [w["type"] for w in warnings],
                       "seconds": round(time.time() - t0, 2)}, ensure_ascii=False, indent=1))
 
 
@@ -1186,4 +1298,15 @@ def write_review(path, records, src, qrep):
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (SystemExit, KeyboardInterrupt):
+        raise
+    except Exception as exc:  # never a bare traceback: keep result.json, say what broke and how to continue
+        import traceback
+        argv = sys.argv[1:]
+        out_dir = argv[argv.index("--out") + 1] if "--out" in argv[:-1] else "/app/output"
+        os.makedirs(out_dir, exist_ok=True)
+        refuse(out_dir, f"unexpected {type(exc).__name__}: {exc}", code=2,
+               traceback=traceback.format_exc().splitlines()[-6:],
+               hint="result.json was not changed; simplify or delete the assertion named in the traceback and re-run")
