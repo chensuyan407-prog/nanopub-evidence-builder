@@ -264,6 +264,14 @@ def _run_init(a):
     task_path = a.task or next((p for p in (os.path.join(case_dir, "task.md"), "/input/task.md", "task.md") if os.path.exists(p)), None)
     bases = [case_dir, "/input", os.getcwd()]
     materials = discover_materials(case, os.path.abspath(a.case), bases, list(a.pdf))
+
+    def _portable(path):
+        """result.json stores material paths relative to the case folder (e.g. 'paper.pdf'), never absolute."""
+        try:
+            rel = os.path.relpath(os.path.abspath(path), case_dir).replace("\\", "/")
+        except ValueError:  # different drive on Windows
+            return os.path.basename(path)
+        return os.path.basename(path) if rel.startswith("..") else rel
     sources, change_log, cand_lines, used = [], [], [], set()
     for m in materials:
         src, r, pdir, stem, is_pdf = parse_material(m, a.out, a.work, used, a)
@@ -308,7 +316,7 @@ def _run_init(a):
             if r.get("unresolved_pages"):
                 cand_lines.append(f"WARNING: pages without a usable text layer: {r['unresolved_pages']} (no sentences from them; read page images, see SKILL.md)\n")
         sources.append(src)
-        change_log.append({"step": "parse+index", "file": m["file"], "role": src["role"], "status": r.get("status"), "tool": C.TOOL,
+        change_log.append({"step": "parse+index", "file": _portable(m["file"]), "role": src["role"], "status": r.get("status"), "tool": C.TOOL,
                            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     found_contracts = K.find_contracts(case)
     spec = K.parse_contracts(found_contracts)
@@ -326,7 +334,7 @@ def _run_init(a):
     result.update({
         "status": "pending_agent_fill",
         "nanopublications": result.get("nanopublications") if "nanopublications" in fields else [],
-        "sources": sources,
+        "sources": [dict(s, file=_portable(s["file"])) for s in sources],
         "field_status": {f: None for f in fields if f != "case_id"},
         "unreported": [], "uncertainty": [], "conflicts": [],
         "output_contract_spec": {"found_under": ckey, "style": spec["style"], "fields": spec["fields"], "deliverable_files": spec["files"],
@@ -367,7 +375,7 @@ def _run_init(a):
         else:
             # re-running init after a build must not wipe the built result: keep it, refresh sources only
             C.dump_json(prev, os.path.join(a.out, "result.prev.json"))
-            prev["sources"] = sources
+            prev["sources"] = [dict(s, file=_portable(s["file"])) for s in sources]
             prev["output_contract_spec"] = result["output_contract_spec"]
             prev.setdefault("change_log", []).append({"step": "np_init re-run", "note": "built result kept; sources refreshed", "tool": C.TOOL,
                                                       "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
