@@ -38,7 +38,7 @@ try:
 except Exception:  # pragma: no cover - parsing still works without it
     mathlayout = None
 
-PARSER_VERSION = "0.3.0"
+PARSER_VERSION = "0.3.1"
 
 # ----------------------------------------------------------------- patterns
 RE_CAPTION = re.compile(
@@ -1091,6 +1091,25 @@ def merge_label_columns(cols, head, body):
     return out
 
 
+def nearest_caption_kind(page, x0, x1, y0, y1):
+    """Use intact caption blocks when a ruled box overlaps neighboring text."""
+    candidates = []
+    for bx0, by0, bx1, by1, text, *_ in page.get_text("blocks"):
+        match = RE_CAPTION.match(text)
+        overlap = min(x1, bx1) - max(x0, bx0)
+        if not match or overlap < 0.5 * min(x1 - x0, bx1 - bx0):
+            continue
+        distance = max(y0 - by1, by0 - y1)
+        if not 0 <= distance <= 40:
+            continue
+        label = match[1].lower()
+        if label.endswith("table") or label in ("tab.", "表"):
+            candidates.append((distance, "table"))
+        elif "fig" in label or label == "图":
+            candidates.append((distance, "figure"))
+    return min(candidates)[1] if candidates else None
+
+
 def detect_ruled_tables(page, page_no):
     """Tables delimited by horizontal rules (booktabs or full grids).
 
@@ -1181,7 +1200,8 @@ def detect_ruled_tables(page, page_no):
         near_caps = [" ".join(w[4] for w in r["words"]) for r in near]
         if any(re.match(r"^\s*(Fig\.?|Figure|FIGURE)\s*[A-Z]?\.?\d", t) for t in near_caps) and \
                 not any(re.match(r"^\s*(Table|TABLE|Tab\.)\s*[A-Z]?\.?\d", t) for t in near_caps):
-            continue  # ruled box captioned as a figure
+            if nearest_caption_kind(page, x0, x1, y0, y1) != "table":
+                continue  # ruled box captioned as a figure
         inner_v = sorted({round(v[2], 1) for v in vs if v[0] < y1 and v[1] > y0 and x0 - 2 <= v[2] <= x1 + 2})
         if len(inner_v) >= 2:
             edges = inner_v
@@ -1302,6 +1322,10 @@ def detect_ruled_tables(page, page_no):
                 key_cols.append(ci)
             else:
                 break
+        if not key_cols and not paths[0]:
+            labels = [grid[nh + bi][0] for bi in range(len(body))]
+            if len(set(labels)) == len(labels) and all(label and not is_num(label) for label in labels):
+                key_cols = [0]  # an unlabeled stub can contain labels such as "18 layers"
         names = []
         for ci in range(ncol):
             n = " / ".join(paths[ci]) or f"col{ci}"

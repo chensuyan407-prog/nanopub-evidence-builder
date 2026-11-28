@@ -36,6 +36,16 @@ def load_json(p):
         return json.load(fh)
 
 
+def relative_locator(path, base):
+    """Serialize a local path without embedding the host filesystem root."""
+    if path is None:
+        return None
+    try:
+        return os.path.relpath(path, base).replace(os.sep, "/")
+    except ValueError:  # Windows paths on different drives have no relative route.
+        return os.path.basename(path)
+
+
 def dump_json(obj, p):
     os.makedirs(os.path.dirname(os.path.abspath(p)), exist_ok=True)
     tmp = p + ".tmp"

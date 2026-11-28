@@ -247,7 +247,8 @@ def main():
         else:
             C.dump_json({"case_id": None, "status": "failed", "nanopublications": [], "sources": [], "field_status": {},
                          "unreported": [], "uncertainty": [{"issue": f"np_init fatal error: {type(e).__name__}: {e}", "origin": "np_init"}],
-                         "conflicts": [], "run_status": {"reason": f"{type(e).__name__}: {e}", "tool": C.TOOL},
+                         "conflicts": [], "status_reason": {"reason": f"{type(e).__name__}: {e}"},
+                         "run_status": {"reason": f"{type(e).__name__}: {e}", "tool": C.TOOL},
                          "change_log": [{"step": "np_init", "status": "failed", "tool": C.TOOL,
                                          "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}]}, rp)
         raise
@@ -279,6 +280,7 @@ def _run_init(a):
             return os.path.basename(path)
         return os.path.basename(path) if rel.startswith("..") else rel
     sources, change_log, cand_lines, used = [], [], [], set()
+    parsed_dirs = {}
     for m in materials:
         src, r, pdir, stem, is_pdf = parse_material(m, a.out, a.work, used, a)
         docp = os.path.join(pdir, "doc.json")
@@ -321,8 +323,11 @@ def _run_init(a):
                 cand_lines.append("tables: " + "; ".join(f"{t['id']} p{t['page']} {(t.get('caption') or '')[:60]}" for t in doc["tables"][:30]) + "\n")
             if r.get("unresolved_pages"):
                 cand_lines.append(f"WARNING: pages without a usable text layer: {r['unresolved_pages']} (no sentences from them; read page images, see SKILL.md)\n")
+        parsed_dirs[stem] = pdir
+        src["file"] = C.relative_locator(m["file"], case_dir)
+        src["parsed_dir"] = C.relative_locator(pdir, a.out)
         sources.append(src)
-        change_log.append({"step": "parse+index", "file": _portable(m["file"]), "role": src["role"], "status": r.get("status"), "tool": C.TOOL,
+        change_log.append({"step": "parse+index", "file": src["file"], "role": src["role"], "status": r.get("status"), "tool": C.TOOL,
                            "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())})
     found_contracts = K.find_contracts(case)
     spec = K.parse_contracts(found_contracts)
@@ -348,7 +353,7 @@ def _run_init(a):
                                  "required": [f["name"] for f in spec["fields"] if f["required"] and f["name"] != "case_id"],
                                  "optional": [f["name"] for f in spec["fields"] if not f["required"] and f["name"] != "case_id"]},
         "run_status": {"init_seconds": round(time.time() - t0, 2), "case_error": case_err, "n_materials": len(materials),
-                       "n_pdfs": sum(1 for s in sources if s["format"] == "pdf"), "task_file": task_path, "tool": C.TOOL},
+                       "n_pdfs": sum(1 for s in sources if s["format"] == "pdf"), "task_file": C.relative_locator(task_path, case_dir), "tool": C.TOOL},
         "change_log": change_log,
     })
     for err in spec.get("errors") or []:
@@ -364,6 +369,7 @@ def _run_init(a):
     elif all(s["parse_status"] == "failed" for s in sources):
         result["status"] = "failed"
         result["run_status"]["reason"] = "; ".join(f"{s['file']}: {s['parse_error']}" for s in sources)
+    result["status_reason"] = {"reason": result["run_status"].get("reason", "awaiting agent draft")}
     rp = os.path.join(a.out, "result.json")
     prev = None
     if os.path.exists(rp):
@@ -393,8 +399,8 @@ def _run_init(a):
     draft_path = os.path.join(a.work, "draft.json")
     primary = next((s for s in sources if s.get("parse_status") != "failed"), sources[0] if sources else None)
     pre_draft = []
-    if primary and primary.get("parsed_dir"):
-        sp = os.path.join(primary["parsed_dir"], "sentences.jsonl")
+    if primary:
+        sp = os.path.join(parsed_dirs[primary["stem"]], "sentences.jsonl")
         if os.path.exists(sp):
             try:
                 with open(sp, encoding="utf-8") as sfh:
@@ -441,7 +447,7 @@ def _run_init(a):
                       "parse_status": [s["parse_status"] for s in sources],
                       "metadata": [s.get("metadata_preview") for s in sources],
                       "result": rp,
-                      "sentences": [os.path.join(s["parsed_dir"], "sentences.jsonl") for s in sources],
+                      "sentences": [os.path.join(parsed_dirs[s["stem"]], "sentences.jsonl") for s in sources],
                       "candidates": os.path.join(a.work, "candidates.md"), "draft": draft_path,
                       "task_file": task_path, "case_error": case_err, "seconds": round(time.time() - t0, 2)},
                      ensure_ascii=False, indent=1))

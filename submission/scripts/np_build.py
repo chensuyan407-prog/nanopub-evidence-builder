@@ -966,8 +966,9 @@ def main():
         want = draft.get("source")
         pdir = next((d for d in dirs if os.path.basename(d) == want), None)
         if pdir is None:
-            order = [s.get("parsed_dir") for s in (prev or {}).get("sources") or [] if s.get("parse_status") != "failed"]
-            pdir = next((d for d in order if d and os.path.exists(os.path.join(d, "doc.json"))), None) or (dirs[0] if len(dirs) == 1 else None)
+            dirs_by_stem = {os.path.basename(d): d for d in dirs}
+            order = [s.get("stem") for s in (prev or {}).get("sources") or [] if s.get("parse_status") != "failed"]
+            pdir = next((dirs_by_stem[stem] for stem in order if stem in dirs_by_stem), None) or (dirs[0] if len(dirs) == 1 else None)
             if pdir and want:
                 notes.append({"issue": f"draft.source {want!r} is not a parsed source; used {os.path.basename(pdir)} (primary)"})
     if not pdir:
@@ -1195,7 +1196,9 @@ def main():
                             "contract_errors": contract_errors, "assertions_not_built": [e["id"] or e["index"] for e in build_errors]}
     if not res["field_problems"]:
         res.pop("field_problems")
-    res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL, "draft": a.draft, "merged_onto": merged_from,
+    res.setdefault("change_log", []).append({"step": "np_build", "tool": C.TOOL,
+                                              "draft": C.relative_locator(a.draft, a.out),
+                                              "merged_onto": C.relative_locator(merged_from, a.out),
                                               "n_assertions": len(records), "n_build_errors": len(build_errors),
                                               "auto_filled_fields": auto,
                                               "verdicts": {k: qrep["summary"][k] for k in ("pass", "warn", "fail")}, "at": now_iso()})

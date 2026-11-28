@@ -64,6 +64,7 @@ for d in "${SKILL_DIR:-}" /skills/weekly-skill /app/submission /app/skills /app/
 ## Output Contract & Field Mapping
 
 - `np_init.py` reads `output_contract` / `output_fields` / `output_schema` / `deliverables` / `schema`, copies `case_id` as given, and writes `required_questions` / `optional_questions` into `draft.json`.
+- In `result.json`, contract answers use their original top-level field names. `output_contract_spec` lists the parsed field requirements. Source and task paths are relative to the case directory. Parsed paths, exports, and build log paths are relative to the output directory.
 - Map each contract field in `draft.fields`:
   - `{"kind": "assertions"}` (or `"nanopublications"`, `"evidence"`, `"provenance"`, `"quality"`, `"relations"`, `"summary"`, `"unreported"`, `"conflicts"`, `"uncertainty"`).
   - `{"value": <answer>, "from": ["a1", "a2"]}` for direct question fields; `result.json` attaches `field_evidence` (quote, page, table/row/column, unit) automatically.
@@ -77,6 +78,7 @@ for d in "${SKILL_DIR:-}" /skills/weekly-skill /app/submission /app/skills /app/
 | Encrypted PDF | `init` marks `failed` (`parse_error=encrypted`) | Pass `--password` if provided, else report |
 | Page without text layer | `unresolved_pages` listed in `sources` | Use `crop_region.py`, bind `image_region` |
 | Main paper + supplement | Primary first; one parsed dir each | Set `"source"` on supplement assertions |
+| Table lookup exits 1 | The table or cell could not be resolved | Inspect `parsed/<stem>/tables/` and use independently verified source text if a cell remains unavailable |
 | Quote not found (R04) | Closest sentence + similarity printed | Use exact `sentence_id` or verbatim `{page, quote}` |
 | Broken draft / shrink | Exit 2/3, `result.json` untouched | Fix JSON or use `--merge` / `--allow-shrink` |
 | Long paper / time short | `--pages 1-10` on `np_init.py` | Build core assertions; list skipped pages in `uncertainty` |
