@@ -1130,6 +1130,9 @@ def main():
                 unrep.append({"field": f, "reason": f"agent did not fill this field (unknown kind {kind!r})" if kind != "agent_value" else "agent did not fill this field"})
     for f in res["field_status"]:
         if f not in fields and res["field_status"][f] is None:
+            if f == "sources" and res.get("sources"):  # provenance list written by np_init: keep it, do not null it
+                res["field_status"][f] = "generated (auto: source provenance from np_init)"
+                continue
             res["field_status"][f] = "unreported"
             res[f] = None
             if not any(isinstance(u, dict) and u.get("field") == f for u in unrep):

@@ -43,8 +43,8 @@
  "papers": {
   "resnet": {
    "pdf_sha256": "1e0651b6810ecba34a3dbc5b5b0209226f889004607c1f203540a48d64e5a93a",
-   "init_seconds": 1.81,
-   "build_seconds": 0.66,
+   "init_seconds": 1.34,
+   "build_seconds": 0.55,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 552,
@@ -87,8 +87,8 @@
   },
   "attention": {
    "pdf_sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
-   "init_seconds": 1.3,
-   "build_seconds": 0.73,
+   "init_seconds": 1.09,
+   "build_seconds": 0.58,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 633,
@@ -136,8 +136,8 @@
   },
   "bn": {
    "pdf_sha256": "bdc69e0b568f41d8d3181cc9077a461f58fcdd1c70c9f49efe60a05ee6109655",
-   "init_seconds": 1.35,
-   "build_seconds": 0.64,
+   "init_seconds": 1.04,
+   "build_seconds": 0.54,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 569,
@@ -181,8 +181,8 @@
   },
   "kaplan_holdout": {
    "pdf_sha256": "a41bd7877fd1a6bcbba096b2619618bd2f90e02488f2365644903eb2f7c6a494",
-   "init_seconds": 4.78,
-   "build_seconds": 1.41,
+   "init_seconds": 3.46,
+   "build_seconds": 0.88,
    "deterministic_nquads": true,
    "export_roundtrip": {
     "nquads_lines": 665,
@@ -232,5 +232,5 @@
    }
   }
  },
- "wall_seconds": 14.69
+ "wall_seconds": 11.32
 }

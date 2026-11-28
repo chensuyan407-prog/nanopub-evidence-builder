@@ -52,6 +52,12 @@ def contract_fields(contract):
     return [f["name"] for f in K.parse_contract(contract)["fields"]]
 
 
+# keep in sync with np_build.RESERVED_FIELDS
+RUNTIME_OWNED_FIELDS = {"case_id", "sources", "field_status", "field_evidence", "field_problems", "output_contract_spec",
+                        "run_status", "change_log", "status_reason", "build_errors", "exports", "export_roundtrip",
+                        "quality_summary", "source_metadata"}
+
+
 def _role_of(text):
     if not text:
         return None
@@ -424,7 +430,8 @@ def _run_init(a):
             "source_overrides": {},
             "assertions": [],
             "_pre_draft_assertions": pre_draft,
-            "fields": {f: {"kind": k} for f, k in suggestions.items()},
+            # runtime-owned keys (np_build RESERVED_FIELDS) are filled by np_build itself; scaffolding them makes np_build refuse the draft
+            "fields": {f: {"kind": k} for f, k in suggestions.items() if f not in RUNTIME_OWNED_FIELDS},
             "unreported": [], "conflicts": [], "uncertainty": []}, draft_path)
     print(json.dumps({"case_id": case_id, "materials": [{"file": s["file"], "role": s["role"], "stem": s["stem"], "format": s["format"]} for s in sources],
                       "primary_source": primary["stem"] if primary else None,

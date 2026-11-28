@@ -415,13 +415,13 @@
    "ok": true,
    "materials": [
     {
-     "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\main.pdf",
+     "file": "C:\\Users\\12117\\AppData\\Local\\Temp\\wt_origin\\execution\\results\\v03\\c4_roles\\input\\main.pdf",
      "role": "primary",
      "stem": "main",
      "format": "pdf"
     },
     {
-     "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4_roles\\input\\supp_big.pdf",
+     "file": "C:\\Users\\12117\\AppData\\Local\\Temp\\wt_origin\\execution\\results\\v03\\c4_roles\\input\\supp_big.pdf",
      "role": "supplement",
      "stem": "supp_big",
      "format": "pdf"
@@ -433,13 +433,13 @@
    "ok": true,
    "materials": [
     {
-     "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\article.pdf",
+     "file": "C:\\Users\\12117\\AppData\\Local\\Temp\\wt_origin\\execution\\results\\v03\\c4b_keys\\input\\article.pdf",
      "role": "primary",
      "stem": "article",
      "format": "pdf"
     },
     {
-     "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c4b_keys\\input\\SI_appendix.pdf",
+     "file": "C:\\Users\\12117\\AppData\\Local\\Temp\\wt_origin\\execution\\results\\v03\\c4b_keys\\input\\SI_appendix.pdf",
      "role": "supplement",
      "stem": "SI_appendix",
      "format": "pdf"
@@ -539,7 +539,7 @@
    "ok": true,
    "materials": [
     {
-     "file": "C:\\Users\\12117\\Desktop\\bohrium-pdf-evidence-reader\\nanopub\\execution\\results\\v03\\c8_txt\\input\\notes.txt",
+     "file": "C:\\Users\\12117\\AppData\\Local\\Temp\\wt_origin\\execution\\results\\v03\\c8_txt\\input\\notes.txt",
      "role": "unlabelled",
      "stem": "notes",
      "format": "txt"
@@ -566,7 +566,7 @@
      "doi": null,
      "year": null,
      "venue": null,
-     "file_sha256": "c23b78a876f872ff969cf1111deab1f5098c150850b7723ab4b71159c3a9136f",
+     "file_sha256": "5b8026b4b7188c5c54d7f3cdbf774bd531dc1db457e5a292271dbf0014945549",
      "source_format": "docx",
      "page_count": 2,
      "file_name": "paper.docx",
